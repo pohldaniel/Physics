@@ -77,6 +77,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	MoveWindow(GetConsoleWindow(), 1300, 0, 550, 300, true);
 	std::cout << "w, a, s, d, q, e, mouse : move camera" << std::endl;
 	std::cout << "arrow keys              : move player" << std::endl;
+	std::cout << "control right           : jump" << std::endl;
 	std::cout << "mouse left              : shoot sphere" << std::endl;
 	std::cout << "space                   : release capture" << std::endl;
 	std::cout << "v                       : toggle vsync" << std::endl;
