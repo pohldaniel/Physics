@@ -12,7 +12,8 @@ Camera::Camera(){
 	m_znear = 0.1f;
 	m_zfar = 1000.0f;
     m_aspectRatio = 0.0f;
-    
+	m_accumPitchDegrees = 0.0f;
+
     m_eye.set(0.0f, 0.0f, 0.0f);
     m_xAxis.set(1.0f, 0.0f, 0.0f);
     m_yAxis.set(0.0f, 1.0f, 0.0f);
@@ -26,9 +27,12 @@ Camera::Camera(){
 }
 
 Camera::Camera(const Vector3f &eye, const Vector3f &target, const Vector3f &up) {
+
+	m_accumPitchDegrees = 0.0f;	
 	m_eye = eye;
 	m_projMatrix.identity();
 	m_orthMatrix.identity();
+
 	updateViewMatrix(eye, target, up);
 }
 
@@ -71,8 +75,7 @@ void Camera::updateViewMatrix(bool orthogonalizeAxes){
 	m_viewMatrix[2][3] = -Vector3f::Dot(m_zAxis, m_eye);
 	m_viewMatrix[3][3] = 1.0f;
 
-
-	m_invViewMatrix[0][0] = m_xAxis[0];
+	/*m_invViewMatrix[0][0] = m_xAxis[0];
 	m_invViewMatrix[1][0] = m_xAxis[1];
 	m_invViewMatrix[2][0] = m_xAxis[2];
 	m_invViewMatrix[3][0] = 0.0f;
@@ -90,7 +93,7 @@ void Camera::updateViewMatrix(bool orthogonalizeAxes){
 	m_invViewMatrix[0][3] = m_eye[0];
 	m_invViewMatrix[1][3] = m_eye[1];
 	m_invViewMatrix[2][3] = m_eye[2];
-	m_invViewMatrix[3][3] = 1.0f;
+	m_invViewMatrix[3][3] = 1.0f;*/
 }
 
 void Camera::updateViewMatrix(const Vector3f &eye, const Vector3f &target, const Vector3f &up){
@@ -129,9 +132,12 @@ void Camera::updateViewMatrix(const Vector3f &eye, const Vector3f &target, const
 	m_viewMatrix[2][3] = -Vector3f::Dot(m_zAxis, eye);
 	m_viewMatrix[3][3] = 1.0f;
 
-	Matrix4f invView;
+	// Extract the pitch angle from the view matrix.
+	m_accumPitchDegrees = asinf(m_viewMatrix[1][2])*180.f / PI;
+
+	/*Matrix4f invView;
 	invView.invLookAt(eye, target, up);
-	m_invViewMatrix = invView;
+	m_invViewMatrix = invView;*/
 }
 
 void Camera::perspective(float fovx, float aspect, float znear, float zfar){
@@ -254,7 +260,7 @@ void Camera::rotateFirstPerson(float pitch, float yaw){
 	m_accumPitchDegrees += pitch;
 
 	if (m_accumPitchDegrees > 90.0f){
-
+		
 		pitch = 90.0f - (m_accumPitchDegrees - pitch);
 		m_accumPitchDegrees = 90.0f;
 	}
@@ -282,8 +288,6 @@ void Camera::rotateFirstPerson(float pitch, float yaw){
 		m_yAxis = rotMtx * m_yAxis;
 		m_zAxis = rotMtx * m_zAxis;
 	}
-
-	//std::cout << m_xAxis[0] << "  " << m_xAxis[1] << "  " << m_xAxis[2] << std::endl;
 }
 
 void Camera::setPosition(float x, float y, float z){

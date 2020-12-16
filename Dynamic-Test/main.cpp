@@ -6,7 +6,8 @@
 #include <sstream>
 #include <chrono>
 #include <btBulletDynamicsCommon.h>	
-
+#include <BulletCollision\CollisionDispatch\btGhostObject.h>
+#include <BulletDynamics\Character\btKinematicCharacterController.h>
 #include "GL.h"
 #include "Extension.h"
 
@@ -40,6 +41,8 @@ SkyBox* skyBox;
 Camera camera;
 MeshSphere *sphere;
 MeshQuad *quad;
+bool UPDATEFRAME = false;
+double delta_Time;
 
 btDynamicsWorld* world;	//every physical object go to the world
 btDispatcher* dispatcher;	//what collision algorithm to use?
@@ -47,6 +50,8 @@ btCollisionConfiguration* collisionConfig;	//what collision algorithm to use?
 btBroadphaseInterface* broadphase;	//should Bullet examine every object, or just what close to each other
 btConstraintSolver* solver;					//solve collisions, apply forces, impulses
 std::vector<btRigidBody*> bodies;
+
+btKinematicCharacterController* charCon;
 
 btRigidBody* addSphere(float rad, float x, float y, float z, float mass);
 void renderSphere(btRigidBody* sphere);
@@ -60,6 +65,7 @@ void enableVerticalSync(bool enableVerticalSync);
 
 void initApp(HWND hWnd);
 void processInput(HWND hWnd);
+void updateFrame(HWND hWnd, double elapsedTimeSec);
 // the main windows entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 
@@ -69,11 +75,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetConsoleTitle("Debug console");
 
 	MoveWindow(GetConsoleWindow(), 1300, 0, 550, 300, true);
-	std::cout << "w, a, s, d, mouse : move camera" << std::endl;
-	std::cout << "control left      : shoot sphere" << std::endl;
-	std::cout << "space             : release capture" << std::endl;
-	std::cout << "v                 : toggle vsync" << std::endl;
-	std::cout << "z                 : toggle wireframe" << std::endl;
+	std::cout << "w, a, s, d, q, e, mouse : move camera" << std::endl;
+	std::cout << "arrow keys              : move player" << std::endl;
+	std::cout << "mouse left              : shoot sphere" << std::endl;
+	std::cout << "space                   : release capture" << std::endl;
+	std::cout << "v                       : toggle vsync" << std::endl;
+	std::cout << "z                       : toggle wireframe" << std::endl;
 
 	WNDCLASSEX		windowClass;		// window class
 	HWND			hwnd;				// window handle
@@ -120,6 +127,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	initApp(hwnd);
 
+	std::chrono::steady_clock::time_point start = std::chrono::high_resolution_clock::now();
+	std::chrono::steady_clock::time_point end;
+	std::chrono::duration<double> deltaTime;
 
 	// main message loop
 	while (true) {
@@ -135,6 +145,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		}else {
 			
+			end = start;
+			start = std::chrono::high_resolution_clock::now();
+			deltaTime = start - end;
+			delta_Time = deltaTime.count();
 
 			glClearColor(1.0, 1.0, 1.0, 1.0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -151,6 +165,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			skyBox->draw(camera);
 
 			processInput(hwnd);
+			updateFrame(hwnd, delta_Time);
+
 			hdc = GetDC(hwnd);
 			SwapBuffers(hdc);
 			ReleaseDC(hwnd, hdc);
@@ -173,7 +189,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	delete dispatcher;
 	delete collisionConfig;
 	delete solver;
-	delete broadphase;
+	//delete broadphase;
 	delete world;
 	
 	return msg.wParam;
@@ -210,6 +226,13 @@ LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 	case WM_LBUTTONDOWN: { // Capture the mouse
 
+		if (GetCapture() == hWnd) {
+			Vector3f pos = camera.getPosition();
+			Vector3f dir = camera.getViewDirection() * 200;
+			btRigidBody* sphere = addSphere(20.0, pos[0], pos[1], pos[2], 1.0);
+			sphere->setLinearVelocity(btVector3(dir[0], dir[1], dir[2]));
+		}
+
 		setCursortoMiddle(hWnd);
 		SetCapture(hWnd);
 
@@ -235,10 +258,7 @@ LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		case VK_CONTROL: {
 			//just use left control
 			if ((lParam & 0x01000000) == 0) {
-				Vector3f pos = camera.getPosition();
-				Vector3f dir = camera.getViewDirection() * 200;
-				btRigidBody* sphere = addSphere(20.0, pos[0], pos[1], pos[2], 1.0);
-				sphere->setLinearVelocity(btVector3(dir[0], dir[1], dir[2]));
+				
 			}
 		}break;
 		case 'v': case 'V': {
@@ -345,9 +365,8 @@ void initApp(HWND hWnd) {
 	world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig);
 	world->setGravity(btVector3(0, -100, 0));	//gravity on Earth
 
-
 	//create btPlane
-	btTransform transPlane;
+	/*btTransform transPlane;
 	transPlane.setIdentity();
 	transPlane.setOrigin(btVector3(0, 0, 0));
 	btStaticPlaneShape* btPlane = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
@@ -355,7 +374,7 @@ void initApp(HWND hWnd) {
 	btRigidBody::btRigidBodyConstructionInfo infoPlane(0.0, motionPlane, btPlane);
 	btRigidBody* bodyPlane = new btRigidBody(infoPlane);
 	world->addRigidBody(bodyPlane);
-	bodies.push_back(bodyPlane);
+	bodies.push_back(bodyPlane);*/
 
 	//create btBox
 	btTransform transBox;
@@ -380,6 +399,46 @@ void initApp(HWND hWnd) {
 	btRigidBody* bodySphere = new btRigidBody(infoSphere);
 	world->addRigidBody(bodySphere);
 	bodies.push_back(bodySphere);
+
+	//create player
+	btTransform startTransform;
+	startTransform.setIdentity();
+	Vector3f pos = camera.getPosition();
+	startTransform.setOrigin(btVector3(pos[0], pos[1], pos[2]));
+
+	btConvexShape* ghostShape = new btCapsuleShape(20.0f, 5.0f);
+	
+	/*btGhostObject* ghostObject = new btGhostObject();
+	ghostObject->setCollisionShape(ghostShape);
+	ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);*/
+
+	/*btMotionState* motionCapsule = new btDefaultMotionState(startTransform);
+	btRigidBody::btRigidBodyConstructionInfo clientBodyInfo(10.0f, motionCapsule, ghostShape, capsuleInertia);
+	clientBodyInfo.m_friction = 0.0f;
+	clientBodyInfo.m_restitution = 0.0f;
+	clientBodyInfo.m_linearDamping = 0.0f;
+
+	btRigidBody* bodyCapsule = new btRigidBody(clientBodyInfo);
+	bodyCapsule->setAngularFactor(btVector3(0.0f, 0.0f, 0.0f));
+	bodyCapsule->setActivationState(DISABLE_DEACTIVATION);
+	world->addRigidBody(bodyCapsule);*/
+
+
+	btPairCachingGhostObject* ghostObject = new btPairCachingGhostObject();
+	ghostObject->setWorldTransform(startTransform);
+	broadphase->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
+
+	ghostObject->setCollisionShape(ghostShape);
+	ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
+	//ghostObject->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
+	//ghostObject->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
+
+	charCon = new btKinematicCharacterController(ghostObject, ghostShape, 0.05f);
+	charCon->setGravity(btVector3(0, -100, 0));
+
+	world->addCollisionObject(ghostObject, btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::AllFilter);
+	world->addAction(charCon);
+	charCon->setMaxJumpHeight(20.0);	
 }
 
 void setCursortoMiddle(HWND hwnd) {
@@ -390,7 +449,6 @@ void setCursortoMiddle(HWND hwnd) {
 }
 
 void enableVerticalSync(bool enableVerticalSync) {
-
 	// WGL_EXT_swap_control.
 	typedef BOOL(WINAPI * PFNWGLSWAPINTERVALEXTPROC)(GLint);
 
@@ -410,8 +468,7 @@ void enableWireframe(bool enableWireframe) {
 
 	if (g_enableWireframe) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-	else {
+	}else {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 }
@@ -473,6 +530,75 @@ void processInput(HWND hWnd) {
 	} // End if Captured
 }
 
+void updateFrame(HWND hWnd, double elapsedTimeSec) {
+
+	static UCHAR pKeyBuffer[256];
+	ULONG        Direction = 0;
+	POINT        CursorPos;
+	float        X = 0.0f, Y = 0.0f;
+
+	// Retrieve keyboard state
+	if (!GetKeyboardState(pKeyBuffer)) return;
+
+	// Check the relevant keys
+	if (pKeyBuffer[VK_UP] & 0xF0) Direction |= DIR_FORWARD;
+	if (pKeyBuffer[VK_DOWN] & 0xF0) Direction |= DIR_BACKWARD;
+	if (pKeyBuffer[VK_LEFT] & 0xF0) Direction |= DIR_LEFT;
+	if (pKeyBuffer[VK_RIGHT] & 0xF0) Direction |= DIR_RIGHT;
+
+	float pitch = 0.0f;
+	float heading = 0.0f;
+
+	if (GetCapture() == hWnd) {
+		// hide the mouse pointer
+		SetCursor(NULL);
+
+		btTransform t;
+		t = charCon->getGhostObject()->getWorldTransform();
+
+		Vector3f fb = camera.getViewDirection();
+		Vector3f rl = Vector3f::Cross(camera.getViewDirection(), camera.getCamY());
+		Vector3f dir(0.0f, 0.0f, 0.0f);
+
+		if ((pKeyBuffer[VK_RCONTROL] & 0xF0) && charCon->onGround()) {
+			charCon->jump(btVector3(0, 60, 0));
+		}
+
+		if (Direction) UPDATEFRAME = true;
+
+		if (UPDATEFRAME) {
+
+			if (Direction & DIR_FORWARD) {
+				dir += fb;
+			}
+
+			if (Direction & DIR_BACKWARD) {
+				dir -= fb;
+			}
+
+			if (Direction & DIR_LEFT) {
+				dir -= rl;
+			}
+
+			if (Direction & DIR_RIGHT) {
+				dir += rl;
+			}
+
+			if (!dir.zero()) {
+				if (charCon->onGround())
+					charCon->setWalkDirection(btVector3(dir[0], 0, dir[2]).normalized());
+				else
+					charCon->setWalkDirection(btVector3(dir[0], 0, dir[2]).normalized() * 0.5f);
+			}
+			else {
+				charCon->setWalkDirection(btVector3(0, 0, 0));
+			}
+
+			btVector3 pos = t.getOrigin();
+			camera.setPosition(pos.getX(), pos.getY(), pos.getZ());
+		}
+	}
+}
 
 btRigidBody* addSphere(float rad, float x, float y, float z, float mass){
 

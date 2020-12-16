@@ -916,7 +916,12 @@ Vector2f operator-(const Vector2f &v) {
 	return Vector2f(-v.vec[0], -v.vec[1]);
 }
 //////////////////////////////////////////////////////////////////////
-Vector3f::Vector3f() {}
+Vector3f::Vector3f() {
+	vec[0] = 0.0f;
+	vec[1] = 0.0f;
+	vec[2] = 0.0f;
+
+}
 
 Vector3f::~Vector3f() {}
 
@@ -971,8 +976,8 @@ Vector3f Vector3f::operator/(float scalar) const {
 }
 
 bool Vector3f::zero() {
-
-	return vec[0] == 0.0 && vec[1] == 0.0 && vec[2] == 0.0;
+	float epsilon = 0.000001;
+	return fabs(vec[0]) <= epsilon && fabs(vec[1]) <= epsilon && fabs(vec[2]) <= epsilon;
 }
 
 Vector3f Vector3f::Cross(const Vector3f &p, const Vector3f &q) {
@@ -1024,13 +1029,11 @@ void Vector3f::set(float x_, float y_, float z_) {
 }
 
 const float* Vector3f::getVec()const {
-
 	return vec;
 }
 
 //friend operator
 Vector3f operator-(const Vector3f &v) {
-
 	return Vector3f(-v.vec[0], -v.vec[1], -v.vec[2]);
 }
 
