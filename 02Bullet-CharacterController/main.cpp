@@ -26,6 +26,16 @@ POINT g_OldCursorPos;
 bool g_enableVerticalSync;
 bool g_enableWireframe;
 
+enum collisiontypes{
+	COL_NOTHING = 0,  
+	COL_SPHERE1 = 1,  
+	COL_SPHERE2 = 2, 
+	COL_GHOST   = 4, 
+	COL_BOX		= 8,  
+
+	COL_FORCE_8BIT = 0xFF
+};
+
 enum DIRECTION {
 	DIR_FORWARD = 1,
 	DIR_BACKWARD = 2,
@@ -41,7 +51,7 @@ SkyBox* skyBox;
 Camera camera;
 MeshSphere *sphere;
 MeshQuad *quad;
-bool UPDATEFRAME = false;
+bool UPDATEFRAME = true;
 double delta_Time;
 
 btDynamicsWorld* world;	//every physical object go to the world
@@ -52,6 +62,7 @@ btConstraintSolver* solver;					//solve collisions, apply forces, impulses
 std::vector<btRigidBody*> bodies;
 
 btKinematicCharacterController* charCon;
+btPairCachingGhostObject* ghostObject;
 
 btRigidBody* addSphere(float rad, float x, float y, float z, float mass);
 void renderSphere(btRigidBody* sphere);
@@ -157,10 +168,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			world->stepSimulation(1.0 / 60.0);
 
 			for (int i = 0; i<bodies.size(); i++){
-				 if (bodies[i]->getCollisionShape()->getShapeType() == SPHERE_SHAPE_PROXYTYPE)
+				if (bodies[i]->getCollisionShape()->getShapeType() == SPHERE_SHAPE_PROXYTYPE) 
 					renderSphere(bodies[i]);
 				else if (bodies[i]->getCollisionShape()->getShapeType() == BOX_SHAPE_PROXYTYPE)
 					renderBox(bodies[i]);
+			}
+
+			
+			for (int i = 0; i < ghostObject->getNumOverlappingObjects(); i++) {
+				btRigidBody *pRigidBody = dynamic_cast<btRigidBody *>(ghostObject->getOverlappingObject(i));
+				if (pRigidBody) {					
+					pRigidBody->applyCentralImpulse(btVector3(0.0f, 10.0f, 0.0f));
+				}
 			}
 
 			skyBox->draw(camera);
@@ -173,7 +192,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			ReleaseDC(hwnd, hdc);
 		}
 	} // end while
-
 
 	delete sphere;
 	delete quad;
@@ -191,6 +209,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	delete collisionConfig;
 	delete solver;
 	//delete broadphase;
+	
+	btCollisionShape* shape = ghostObject->getCollisionShape();
+	delete ghostObject;
+	delete shape;	
+	delete charCon;
 	delete world;
 	
 	return msg.wParam;
@@ -366,6 +389,18 @@ void initApp(HWND hWnd) {
 	world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig);
 	world->setGravity(btVector3(0, -100, 0));	//gravity on Earth
 
+	// Group 0 never collides
+	/*	world->setGroupCollisionFlag(0, 0, False)
+		world.setGroupCollisionFlag(0, 1, False)
+		world.setGroupCollisionFlag(0, 2, False)
+
+		# Group 1 only collides with Group 2
+		world.setGroupCollisionFlag(1, 1, False)
+		world.setGroupCollisionFlag(1, 2, True)
+
+		# Group 2 only collides with itself
+		world.setGroupCollisionFlag(2, 2, True)*/
+
 	//create btPlane
 	/*btTransform transPlane;
 	transPlane.setIdentity();
@@ -384,62 +419,64 @@ void initApp(HWND hWnd) {
 	btBoxShape* btBox = new btBoxShape(btVector3(1024.0f / 2.0, 0.0, 1024.0f / 2.0));
 	btMotionState* motionBox = new btDefaultMotionState(transBox);
 	btRigidBody::btRigidBodyConstructionInfo infoBox(0.0, motionBox, btBox);
-	btRigidBody* bodyBox = new btRigidBody(infoBox);
-	world->addRigidBody(bodyBox);
+	btRigidBody* bodyBox = new btRigidBody(infoBox);	
+	bodyBox->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT); //determine the internal collision handling, this setting goes over group and mask setting
 	bodies.push_back(bodyBox);
+
+	world->addCollisionObject(bodyBox, COL_BOX, COL_GHOST | COL_SPHERE1 | COL_SPHERE2); //determine wich group collides with wich group  "rigidBody | group | collides with"
 	
-	//create btSpehere
-	btTransform transSphere;
-	transSphere.setIdentity();
-	transSphere.setOrigin(btVector3(0.0, 80.0, 0.0));
-	btSphereShape* btSphere = new btSphereShape(20.0);
-	btVector3 inertial(0, 0, 0);
-	btSphere->calculateLocalInertia(1.0, inertial);
-	btMotionState* motionSphere = new btDefaultMotionState(transSphere);
-	btRigidBody::btRigidBodyConstructionInfo infoSphere(1.0, motionSphere, btSphere, inertial);
-	btRigidBody* bodySphere = new btRigidBody(infoSphere);
-	world->addRigidBody(bodySphere);
-	bodies.push_back(bodySphere);
+	
+	//create btSpehere1
+	btTransform transS1;
+	transS1.setIdentity();
+	transS1.setOrigin(btVector3(30.0, 20.0, 0.0));
+	btSphereShape* shapeS1 = new btSphereShape(20.0);
+	btVector3 inertiaS1(0, 0, 0);
+	shapeS1->calculateLocalInertia(1.0, inertiaS1);
+	btMotionState* motionS1 = new btDefaultMotionState(transS1);
+	btRigidBody::btRigidBodyConstructionInfo infoS1(3.0, motionS1, shapeS1, inertiaS1);
+	btRigidBody* bodyS1 = new btRigidBody(infoS1);
+	bodyS1->setCollisionFlags(btCollisionObject::CF_DYNAMIC_OBJECT);
+	bodies.push_back(bodyS1);
+
+	world->addRigidBody(bodyS1, COL_SPHERE1, COL_BOX | COL_SPHERE1 | COL_SPHERE2 | COL_GHOST);
+
+	//create btSpehere2
+	btTransform transS2;
+	transS2.setIdentity();
+	transS2.setOrigin(btVector3(-30.0, 20.0, 0.0));
+	btSphereShape* shapeS2 = new btSphereShape(20.0);
+	btVector3 inertiaS2(0, 0, 0);
+	shapeS2->calculateLocalInertia(1.0, inertiaS2);
+	btMotionState* motionS2 = new btDefaultMotionState(transS2);
+	btRigidBody::btRigidBodyConstructionInfo infoS2(1.0, motionS2, shapeS2, inertiaS2);
+	btRigidBody* bodyS2 = new btRigidBody(infoS2);
+	bodyS2->setCollisionFlags(btCollisionObject::CF_DYNAMIC_OBJECT);
+	bodies.push_back(bodyS2);
+
+	world->addRigidBody(bodyS2, COL_SPHERE2, COL_BOX);
 
 	//create player
+	broadphase->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
+
 	btTransform startTransform;
 	startTransform.setIdentity();
 	Vector3f pos = camera.getPosition();
 	startTransform.setOrigin(btVector3(pos[0], pos[1], pos[2]));
 
 	btConvexShape* ghostShape = new btCapsuleShape(20.0f, 5.0f);
-	
-	/*btGhostObject* ghostObject = new btGhostObject();
+	ghostObject = new btPairCachingGhostObject();
 	ghostObject->setCollisionShape(ghostShape);
-	ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);*/
-
-	/*btMotionState* motionCapsule = new btDefaultMotionState(startTransform);
-	btRigidBody::btRigidBodyConstructionInfo clientBodyInfo(10.0f, motionCapsule, ghostShape, capsuleInertia);
-	clientBodyInfo.m_friction = 0.0f;
-	clientBodyInfo.m_restitution = 0.0f;
-	clientBodyInfo.m_linearDamping = 0.0f;
-
-	btRigidBody* bodyCapsule = new btRigidBody(clientBodyInfo);
-	bodyCapsule->setAngularFactor(btVector3(0.0f, 0.0f, 0.0f));
-	bodyCapsule->setActivationState(DISABLE_DEACTIVATION);
-	world->addRigidBody(bodyCapsule);*/
-
-
-	btPairCachingGhostObject* ghostObject = new btPairCachingGhostObject();
 	ghostObject->setWorldTransform(startTransform);
-	broadphase->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
-
-	ghostObject->setCollisionShape(ghostShape);
 	ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
-	//ghostObject->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
-	//ghostObject->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
 
-	charCon = new btKinematicCharacterController(ghostObject, ghostShape, 0.05f);
+	world->addCollisionObject(ghostObject, COL_GHOST, COL_BOX | COL_SPHERE1);
+
+	charCon = new btKinematicCharacterController(ghostObject, ghostShape, 0.35f);
 	charCon->setGravity(btVector3(0, -100, 0));
-
-	world->addCollisionObject(ghostObject, btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::AllFilter);
+	charCon->setMaxJumpHeight(20.0);
+	
 	world->addAction(charCon);
-	charCon->setMaxJumpHeight(20.0);	
 }
 
 void setCursortoMiddle(HWND hwnd) {
@@ -561,13 +598,14 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 		Vector3f rl = Vector3f::Cross(camera.getViewDirection(), camera.getCamY());
 		Vector3f dir(0.0f, 0.0f, 0.0f);
 
-		if ((pKeyBuffer[VK_RCONTROL] & 0xF0) && charCon->onGround()) {
-			charCon->jump(btVector3(0, 60, 0));
-		}
+		if (Direction || (pKeyBuffer[VK_RCONTROL] & 0xF0)) UPDATEFRAME = true;
 
-		if (Direction) UPDATEFRAME = true;
-
+		
 		if (UPDATEFRAME) {
+
+			if ((pKeyBuffer[VK_RCONTROL] & 0xF0) && charCon->onGround()) {
+				charCon->jump(btVector3(0, 60, 0));
+			}
 
 			if (Direction & DIR_FORWARD) {
 				dir += fb;
@@ -584,19 +622,17 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 			if (Direction & DIR_RIGHT) {
 				dir += rl;
 			}
-
-			if (!dir.zero()) {
-				if (charCon->onGround())
-					charCon->setWalkDirection(btVector3(dir[0], 0, dir[2]).normalized());
-				else
-					charCon->setWalkDirection(btVector3(dir[0], 0, dir[2]).normalized() * 0.5f);
-			}
-			else {
-				charCon->setWalkDirection(btVector3(0, 0, 0));
-			}
-
+			
+			if (charCon->onGround())
+				charCon->setWalkDirection(btVector3(dir[0], 0, dir[2]));
+			else
+				charCon->setWalkDirection(btVector3(dir[0], 0, dir[2]) * 0.5f);
+			
 			btVector3 pos = t.getOrigin();
 			camera.setPosition(pos.getX(), pos.getY(), pos.getZ());
+
+		}else {
+			charCon->setWalkDirection(btVector3(0, 0, 0));
 		}
 	}
 }
@@ -614,7 +650,8 @@ btRigidBody* addSphere(float rad, float x, float y, float z, float mass){
 	btMotionState* motion = new btDefaultMotionState(t);	//set the position (and motion)
 	btRigidBody::btRigidBodyConstructionInfo info(mass, motion, sphere, inertia);	//create the constructioninfo, you can create multiple bodies with the same info
 	btRigidBody* body = new btRigidBody(info);	//let's create the body itself
-	world->addRigidBody(body);	//and let the world know about it
+	body->setCollisionFlags(btCollisionObject::CF_DYNAMIC_OBJECT);
+	world->addRigidBody(body, COL_SPHERE1, COL_BOX | COL_SPHERE1);	//and let the world know about it
 	bodies.push_back(body);	//to be easier to clean, I store them a vector
 	return body;
 }
