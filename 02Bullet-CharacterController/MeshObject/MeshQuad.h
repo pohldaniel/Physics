@@ -15,8 +15,9 @@ class MeshQuad {
 
 public:
 
-	MeshQuad(float width, float height, const std::string &texture);
-	MeshQuad(float width, float height, bool generateTexels, bool generateNormals, const std::string &texture);
+	MeshQuad(float width, float depht, const std::string &texture);
+	MeshQuad(const Vector3f &position, float width, float depht, const std::string &texture);
+	MeshQuad(const Vector3f &position, float width, float depht, bool generateTexels, bool generateNormals, const std::string &texture);
 	~MeshQuad();
 
 	void setPrecision(int uResolution, int vResolution);
@@ -34,7 +35,8 @@ private:
 	int m_uResolution;
 	int m_vResolution;
 	float m_width;
-	float m_height;
+	float m_depht;
+	Vector3f m_position;
 
 	bool m_generateNormals;
 	bool m_generateTexels;

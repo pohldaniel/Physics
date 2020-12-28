@@ -1,11 +1,13 @@
 #include "MeshQuad.h"
 
-MeshQuad::MeshQuad(float width, float height, bool generateTexels, bool generateNormals, const std::string &texture) {
+MeshQuad::MeshQuad(const Vector3f &position, float width, float depht, bool generateTexels, bool generateNormals, const std::string &texture) {
 
 	m_numBuffers = 4;
 
 	m_width = width;
-	m_height = height;
+	m_depht = depht;
+	m_position = position;
+
 	m_generateTexels = generateTexels;
 	m_generateNormals = generateNormals;
 
@@ -14,15 +16,15 @@ MeshQuad::MeshQuad(float width, float height, bool generateTexels, bool generate
 	m_uResolution = 49;
 	m_vResolution = 49;
 
+	m_model = Matrix4f::IDENTITY;
+
 	m_texture = std::make_shared<Texture>(texture);
 	m_shader = std::make_shared<Shader>("shader/texture.vert", "shader/texture.frag");
-
-	m_modelMatrix = ModelMatrix();
 }
 
-MeshQuad::MeshQuad(float width, float height, const std::string &texture) : MeshQuad(width, height, true, true, texture) {
+MeshQuad::MeshQuad(const Vector3f &position, float width, float depht, const std::string &texture) : MeshQuad(position, width, depht, true, true, texture) {}
 
-}
+MeshQuad::MeshQuad(float width, float depht, const std::string &texture) : MeshQuad(Vector3f(0.0f, 0.0f, 0.0f), width, depht, true, true, texture) {}
 
 MeshQuad::~MeshQuad() {}
 
@@ -34,7 +36,7 @@ void MeshQuad::setPrecision(int uResolution, int vResolution) {
 
 void MeshQuad::buildMesh(){
 	
-	float vStep = (1.0f / m_vResolution) * m_height;
+	float vStep = (1.0f / m_vResolution) * m_depht;
 	float uStep = (1.0f /m_uResolution) * m_width;
 
 	for (unsigned int i = 0; i <= m_vResolution; i++) {
@@ -42,10 +44,10 @@ void MeshQuad::buildMesh(){
 			
 			// Calculate vertex position on the surface of a quad
 			float x = j * uStep - m_width * 0.5f;
-			float z = i * vStep - m_height * 0.5f;
+			float z = i * vStep - m_depht * 0.5f;
 			float y = 0.0f;
 
-			Vector3f position = Vector3f(x, y, z);
+			Vector3f position = Vector3f(x, y, z) + m_position;
 			m_positions.push_back(position);
 
 			if (m_generateNormals) {

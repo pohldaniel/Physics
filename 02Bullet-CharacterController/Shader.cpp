@@ -13,8 +13,8 @@ Shader::~Shader() {
 }
 
 //OpenGL specifies matrices as column-major to get row-major just transpose it
-void Shader::loadMatrix(const char* location, const Matrix4f matrix) {
-	glUniformMatrix4fv(glGetUniformLocation(m_program, location), 1, true, &matrix[0][0]);
+void Shader::loadMatrix(const char* location, const Matrix4f matrix, bool trans) {
+	glUniformMatrix4fv(glGetUniformLocation(m_program, location), 1, trans, &matrix[0][0]);
 }
 
 void Shader::loadMatrixArray(const char* location, const std::vector<Matrix4f> matrixArray, const short count) {

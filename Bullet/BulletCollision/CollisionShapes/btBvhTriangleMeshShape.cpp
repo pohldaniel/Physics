@@ -124,13 +124,13 @@ void btBvhTriangleMeshShape::performRaycast(btTriangleCallback* callback, const 
 				nodeSubPart);
 
 			unsigned int* gfxbase = (unsigned int*)(indexbase + nodeTriangleIndex * indexstride);
-
+		
 			const btVector3& meshScaling = m_meshInterface->getScaling();
 			for (int j = 2; j >= 0; j--)
 			{
 				int graphicsindex;
                                 switch (indicestype) {
-                                        case PHY_INTEGER: graphicsindex = gfxbase[j]; break;
+                                        case PHY_INTEGER: graphicsindex = gfxbase[j];break;
                                         case PHY_SHORT: graphicsindex = ((unsigned short*)gfxbase)[j]; break;
                                         case PHY_UCHAR: graphicsindex = ((unsigned char*)gfxbase)[j]; break;
                                         default: btAssert(0);
@@ -204,7 +204,7 @@ void btBvhTriangleMeshShape::performConvexcast(btTriangleCallback* callback, con
 			{
 				int graphicsindex;
                                 switch (indicestype) {
-                                        case PHY_INTEGER: graphicsindex = gfxbase[j]; break;
+								case PHY_INTEGER: graphicsindex = gfxbase[j];  break;
                                         case PHY_SHORT: graphicsindex = ((unsigned short*)gfxbase)[j]; break;
                                         case PHY_UCHAR: graphicsindex = ((unsigned char*)gfxbase)[j]; break;
                                         default: btAssert(0);
