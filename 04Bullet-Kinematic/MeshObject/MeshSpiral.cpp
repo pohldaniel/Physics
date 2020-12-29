@@ -25,6 +25,8 @@ MeshSpiral::MeshSpiral(const Vector3f &position, float radius, float tubeRadius,
 
 	m_numBuffers = 2 + generateTexels + generateNormals + 2 * generateTangents + 2 * generateNormalDerivatives;
 
+	m_model = Matrix4f::IDENTITY;
+
 	m_texture = std::make_shared<Texture>(texture);
 	m_shader = std::make_shared<Shader>("shader/textureN.vert", "shader/textureN.frag");
 
@@ -309,7 +311,7 @@ void MeshSpiral::draw(const Camera camera) {
 	glUseProgram(m_shader->m_program);
 
 	m_texture->bind(0);
-	m_shader->loadMatrix("u_modelView", camera.getViewMatrix());
+	m_shader->loadMatrix("u_modelView", m_model * camera.getViewMatrix());
 	m_shader->loadMatrix("u_projection", camera.getProjectionMatrix());
 
 	glBindVertexArray(m_vao);

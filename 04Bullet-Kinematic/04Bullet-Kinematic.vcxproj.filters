@@ -573,6 +573,9 @@
     <ClCompile Include="Third\deps\stb_image.c">
       <Filter>Third\deps</Filter>
     </ClCompile>
+    <ClCompile Include="DynamicCharacterController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshObject\MeshCube.h">
@@ -1309,6 +1312,9 @@
     </ClInclude>
     <ClInclude Include="Third\deps\stb_image.h">
       <Filter>Third\deps</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicCharacterController.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

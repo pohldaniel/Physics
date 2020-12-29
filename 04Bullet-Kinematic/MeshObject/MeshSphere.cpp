@@ -21,6 +21,8 @@ MeshSphere::MeshSphere(const Vector3f &position, float radius, bool generateTexe
 
 	m_numBuffers = 2 + generateTexels + generateNormals + generateTangents * 2 + generateNormalDerivatives * 2;
 
+	m_model = Matrix4f::IDENTITY;
+
 	m_texture = std::make_shared<Texture>(texture);
 	m_shader = std::make_shared<Shader>("shader/texture.vert", "shader/texture.frag");
 

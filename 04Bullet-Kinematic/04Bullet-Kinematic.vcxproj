@@ -308,6 +308,7 @@
     <ClCompile Include="..\Bullet\LinearMath\TaskScheduler\btThreadSupportPosix.cpp" />
     <ClCompile Include="..\Bullet\LinearMath\TaskScheduler\btThreadSupportWin32.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="DynamicCharacterController.cpp" />
     <ClCompile Include="Extension.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MeshObject\MeshCube.cpp" />
@@ -556,6 +557,7 @@
     <ClInclude Include="..\Bullet\LinearMath\btVector3.h" />
     <ClInclude Include="..\Bullet\LinearMath\TaskScheduler\btThreadSupportInterface.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="DynamicCharacterController.h" />
     <ClInclude Include="Extension.h" />
     <ClInclude Include="MeshObject\MeshCube.h" />
     <ClInclude Include="MeshObject\MeshQuad.h" />
