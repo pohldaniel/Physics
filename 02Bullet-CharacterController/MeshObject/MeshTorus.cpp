@@ -21,10 +21,10 @@ MeshTorus::MeshTorus(const Vector3f &position, float radius, float tubeRadius, b
 
 	m_numBuffers = 2 + generateTexels + generateNormals + 2 * generateTangents + 2 * generateNormalDerivatives;
 
+	m_model = Matrix4f::IDENTITY;
+
 	m_texture = std::make_shared<Texture>(texture);
 	m_shader = std::make_shared<Shader>("shader/texture.vert", "shader/texture.frag");
-
-	m_modelMatrix = ModelMatrix();
 }
 
 MeshTorus::MeshTorus(const Vector3f &position, float radius, float tubeRadius, const std::string &texture) : MeshTorus(position, radius, tubeRadius, true, true, false, false, texture) {}
@@ -324,7 +324,7 @@ void MeshTorus::draw(const Camera camera) {
 	glUseProgram(m_shader->m_program);
 
 	m_texture->bind(0);
-	m_shader->loadMatrix("u_modelView", camera.getViewMatrix());
+	m_shader->loadMatrix("u_modelView", m_model * camera.getViewMatrix());
 	m_shader->loadMatrix("u_projection", camera.getProjectionMatrix());
 
 	glBindVertexArray(m_vao);

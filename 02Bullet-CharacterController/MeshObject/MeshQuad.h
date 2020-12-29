@@ -9,17 +9,17 @@
 #include "..\Camera.h"
 #include "..\Shader.h"
 #include "..\Vector.h"
-#include "..\ModelMatrix.h"
+
 
 class MeshQuad {
 
 public:
-
+	
 	MeshQuad(float width, float depht, const std::string &texture);
 	MeshQuad(const Vector3f &position, float width, float depht, const std::string &texture);
 	MeshQuad(const Vector3f &position, float width, float depht, bool generateTexels, bool generateNormals, const std::string &texture);
 	~MeshQuad();
-
+	
 	void setPrecision(int uResolution, int vResolution);
 	void buildMesh();
 	void draw(const Camera camera);
@@ -54,7 +54,6 @@ private:
 	unsigned int m_vbo[4];
 	unsigned int m_drawCount;
 
-	ModelMatrix m_modelMatrix;
 	Matrix4f m_model;
 
 	std::shared_ptr<Shader> m_shader;

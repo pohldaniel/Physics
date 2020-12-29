@@ -34,14 +34,14 @@ void MeshQuad::setPrecision(int uResolution, int vResolution) {
 	m_vResolution = vResolution;
 }
 
-void MeshQuad::buildMesh(){
-	
+void MeshQuad::buildMesh() {
+
 	float vStep = (1.0f / m_vResolution) * m_depht;
-	float uStep = (1.0f /m_uResolution) * m_width;
+	float uStep = (1.0f / m_uResolution) * m_width;
 
 	for (unsigned int i = 0; i <= m_vResolution; i++) {
 		for (unsigned int j = 0; j <= m_uResolution; j++) {
-			
+
 			// Calculate vertex position on the surface of a quad
 			float x = j * uStep - m_width * 0.5f;
 			float z = i * vStep - m_depht * 0.5f;
@@ -73,18 +73,18 @@ void MeshQuad::buildMesh(){
 	}
 
 	//calculate the indices
-	for (int z = 0; z < m_vResolution ; z++) {
+	for (int z = 0; z < m_vResolution; z++) {
 		for (int x = 0; x < m_uResolution; x++) {
 			// 0 *- 1		0
 			//	\	*		|  *
 			//	 *	|		*	\
-			//      4		3 -* 4
+						//      4		3 -* 4
 			m_indexBuffer.push_back(z * (m_uResolution + 1) + x);
-			m_indexBuffer.push_back((z + 1) * (m_uResolution + 1) + x + 1);			
+			m_indexBuffer.push_back((z + 1) * (m_uResolution + 1) + x + 1);
 			m_indexBuffer.push_back(z * (m_uResolution + 1) + x + 1);
 
 			m_indexBuffer.push_back(z * (m_uResolution + 1) + x);
-			m_indexBuffer.push_back((z + 1) * (m_uResolution + 1) + x);			
+			m_indexBuffer.push_back((z + 1) * (m_uResolution + 1) + x);
 			m_indexBuffer.push_back((z + 1) * (m_uResolution + 1) + x + 1);
 		}
 	}
@@ -106,7 +106,7 @@ void MeshQuad::buildMesh(){
 	//Texture Coordinates
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo[1]);
 	glBufferData(GL_ARRAY_BUFFER, m_texels.size() * sizeof(m_texels[0]), &m_texels[0], GL_STATIC_DRAW);
- 
+
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 

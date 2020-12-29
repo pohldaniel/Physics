@@ -9,8 +9,6 @@
 #include "..\Camera.h"
 #include "..\Shader.h"
 #include "..\Vector.h"
-#include "..\ModelMatrix.h"
-#include "..\Entity3D.h"
 
 class MeshSphere {
 
@@ -23,7 +21,6 @@ public:
 
 	void setPrecision(int uResolution, int vResolution);
 	void buildMesh();
-	void draw(const Camera camera, Entity3D entity);
 	void draw(const Camera camera);
 
 	void setTransformation(const Matrix4f &transformation) {m_model = transformation;}
@@ -61,8 +58,6 @@ private:
 	unsigned int m_vao;
 	unsigned int m_vbo[4];
 	unsigned int m_drawCount;
-
-	ModelMatrix m_modelMatrix;
 
 	std::shared_ptr<Shader> m_shader;
 	std::shared_ptr<Texture> m_texture;

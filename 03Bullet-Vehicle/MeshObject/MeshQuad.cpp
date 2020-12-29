@@ -22,9 +22,9 @@ MeshQuad::MeshQuad(const Vector3f &position, float width, float depht, bool gene
 	m_shader = std::make_shared<Shader>("shader/texture.vert", "shader/texture.frag");
 }
 
-MeshQuad::MeshQuad(const Vector3f &position, float width, float height, const std::string &texture) : MeshQuad(position, width, height, true, true, texture) {}
+MeshQuad::MeshQuad(const Vector3f &position, float width, float depht, const std::string &texture) : MeshQuad(position, width, depht, true, true, texture) {}
 
-MeshQuad::MeshQuad(float width, float height, const std::string &texture) : MeshQuad(Vector3f(0.0f, 0.0f, 0.0f), width, height, true, true, texture) {}
+MeshQuad::MeshQuad(float width, float depht, const std::string &texture) : MeshQuad(Vector3f(0.0f, 0.0f, 0.0f), width, depht, true, true, texture) {}
 
 MeshQuad::~MeshQuad() {}
 

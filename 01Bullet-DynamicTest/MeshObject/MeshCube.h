@@ -9,7 +9,6 @@
 #include "..\Camera.h"
 #include "..\Shader.h"
 #include "..\Vector.h"
-#include "..\ModelMatrix.h"
 
 class MeshCube {
 
@@ -24,6 +23,7 @@ public:
 	void buildMesh();
 	void buildMesh4Q();
 	void draw(const Camera camera);
+	void setTransformation(const Matrix4f &transformation) { m_model = transformation; }
 
 	std::vector<unsigned int> m_indexBuffer;
 	std::vector<Vector3f> m_positions;
@@ -56,9 +56,9 @@ private:
 	unsigned int m_vbo[4];
 	unsigned int m_drawCount;
 
-	ModelMatrix m_modelMatrix;
-
 	std::shared_ptr<Shader> m_shader;
 	std::shared_ptr<Texture> m_texture;
+
+	Matrix4f m_model;
 };
 #endif

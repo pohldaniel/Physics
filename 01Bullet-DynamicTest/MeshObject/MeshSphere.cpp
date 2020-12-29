@@ -21,10 +21,10 @@ MeshSphere::MeshSphere(const Vector3f &position, float radius, bool generateTexe
 
 	m_numBuffers = 2 + generateTexels + generateNormals + generateTangents * 2 + generateNormalDerivatives * 2;
 
+	m_model = Matrix4f::IDENTITY;
+
 	m_texture = std::make_shared<Texture>(texture);
 	m_shader = std::make_shared<Shader>("shader/texture.vert", "shader/texture.frag");
-
-	m_modelMatrix = ModelMatrix();
 
 	m_min = Vector3f(FLT_MAX, FLT_MAX, FLT_MAX);
 	m_max = Vector3f(FLT_MIN, FLT_MIN, FLT_MIN);
@@ -365,21 +365,6 @@ void MeshSphere::buildMesh() {
 	m_indexBuffer.shrink_to_fit();*/
 
 	m_isInitialized = true;
-}
-
-
-void MeshSphere::draw(const Camera camera, Entity3D entity) {
-	glUseProgram(m_shader->m_program);
-
-	m_texture->bind(0);
-	m_shader->loadMatrix("u_modelView", entity.getWorldMatrix() * camera.getViewMatrix());	
-	m_shader->loadMatrix("u_projection", camera.getProjectionMatrix());
-
-	glBindVertexArray(m_vao);
-	glDrawElements(GL_TRIANGLES, m_drawCount, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-
-	glUseProgram(0);
 }
 
 void MeshSphere::draw(const Camera camera) {

@@ -22,6 +22,7 @@ public:
 	void setPrecision(int uResolution, int vResolution);
 	void buildMesh();
 	void draw(const Camera camera);
+	void setTransformation(const Matrix4f &transformation) { m_model = transformation; }
 
 	std::vector<unsigned int> m_indexBuffer;
 	std::vector<Vector3f> m_positions;
@@ -55,5 +56,6 @@ private:
 	std::shared_ptr<Shader> m_shader;
 	std::shared_ptr<Texture> m_texture;
 
+	Matrix4f m_model;
 };
 #endif

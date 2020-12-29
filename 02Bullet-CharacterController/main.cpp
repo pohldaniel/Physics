@@ -183,7 +183,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 
 			skyBox->draw(camera);
-
+			quad->draw(camera);
 			processInput(hwnd);
 			updateFrame(hwnd, delta_Time);
 

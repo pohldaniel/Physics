@@ -17,10 +17,10 @@ MeshCube::MeshCube(const Vector3f &position, float width, float height, float de
 	m_uResolution = 49;
 	m_vResolution = 49;
 
+	m_model = Matrix4f::IDENTITY;
+
 	m_texture = std::make_shared<Texture>(texture);
 	m_shader = std::make_shared<Shader>("shader/texture.vert", "shader/texture.frag");
-
-	m_modelMatrix = ModelMatrix();
 }
 
 MeshCube::MeshCube(const Vector3f &position, float width, float height, float depth, const std::string &texture) : MeshCube(position, width, height, depth, true, true, texture) {}
@@ -609,7 +609,7 @@ void MeshCube::draw(const Camera camera) {
 	glUseProgram(m_shader->m_program);
 
 	m_texture->bind(0);
-	m_shader->loadMatrix("u_modelView", camera.getViewMatrix());
+	m_shader->loadMatrix("u_modelView", m_model * camera.getViewMatrix());
 	m_shader->loadMatrix("u_projection", camera.getProjectionMatrix());
 
 	glBindVertexArray(m_vao);
