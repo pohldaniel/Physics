@@ -72,8 +72,50 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MeshObject\MeshCube.cpp">
+      <Filter>MeshObject</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshObject\MeshQuad.cpp">
+      <Filter>MeshObject</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshObject\MeshSphere.cpp">
+      <Filter>MeshObject</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshObject\MeshSpiral.cpp">
+      <Filter>MeshObject</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshObject\MeshTorus.cpp">
+      <Filter>MeshObject</Filter>
+    </ClCompile>
     <ClCompile Include="Third\deps\stb_image.c">
       <Filter>Third\deps</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Extension.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelMatrix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Bullet\BulletCollision\BroadphaseCollision\btAxisSweep3.cpp">
       <Filter>Bullet\BulletCollision\BroadphaseCollision</Filter>
@@ -531,52 +573,49 @@
     <ClCompile Include="..\Bullet\LinearMath\btVector3.cpp">
       <Filter>Bullet\LinearMath</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Entity3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Extension.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelMatrix.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Skybox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshObject\MeshCube.cpp">
-      <Filter>MeshObject</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshObject\MeshQuad.cpp">
-      <Filter>MeshObject</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshObject\MeshSphere.cpp">
-      <Filter>MeshObject</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshObject\MeshSpiral.cpp">
-      <Filter>MeshObject</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshObject\MeshTorus.cpp">
-      <Filter>MeshObject</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MeshObject\MeshCube.h">
+      <Filter>MeshObject</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshObject\MeshQuad.h">
+      <Filter>MeshObject</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshObject\MeshSphere.h">
+      <Filter>MeshObject</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshObject\MeshSpiral.h">
+      <Filter>MeshObject</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshObject\MeshTorus.h">
+      <Filter>MeshObject</Filter>
+    </ClInclude>
     <ClInclude Include="Third\deps\stb_image.h">
       <Filter>Third\deps</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Extension.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelMatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Bullet\BulletCollision\BroadphaseCollision\btAxisSweep3.h">
       <Filter>Bullet\BulletCollision\BroadphaseCollision</Filter>
@@ -1270,45 +1309,6 @@
     </ClInclude>
     <ClInclude Include="..\Bullet\LinearMath\btVector3.h">
       <Filter>Bullet\LinearMath</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Entity3D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Extension.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelMatrix.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Skybox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshObject\MeshCube.h">
-      <Filter>MeshObject</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshObject\MeshQuad.h">
-      <Filter>MeshObject</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshObject\MeshSphere.h">
-      <Filter>MeshObject</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshObject\MeshSpiral.h">
-      <Filter>MeshObject</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshObject\MeshTorus.h">
-      <Filter>MeshObject</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

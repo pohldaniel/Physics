@@ -26,12 +26,12 @@ POINT g_OldCursorPos;
 bool g_enableVerticalSync;
 bool g_enableWireframe;
 
-enum collisiontypes{
-	COL_NOTHING = 0,  
-	COL_SPHERE1 = 1,  
-	COL_SPHERE2 = 2, 
-	COL_GHOST   = 4, 
-	COL_BOX		= 8,  
+enum collisiontypes {
+	COL_NOTHING = 0,
+	COL_SPHERE1 = 1,
+	COL_SPHERE2 = 2,
+	COL_GHOST = 4,
+	COL_BOX = 8,
 
 	COL_FORCE_8BIT = 0xFF
 };
@@ -155,8 +155,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 
-		}else {
-			
+		}
+		else {
+
 			end = start;
 			start = std::chrono::high_resolution_clock::now();
 			deltaTime = start - end;
@@ -164,20 +165,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			glClearColor(1.0, 1.0, 1.0, 1.0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-						
+
 			world->stepSimulation(1.0 / 60.0);
 
-			for (int i = 0; i<bodies.size(); i++){
-				if (bodies[i]->getCollisionShape()->getShapeType() == SPHERE_SHAPE_PROXYTYPE) 
+			for (int i = 0; i<bodies.size(); i++) {
+				if (bodies[i]->getCollisionShape()->getShapeType() == SPHERE_SHAPE_PROXYTYPE)
 					renderSphere(bodies[i]);
 				else if (bodies[i]->getCollisionShape()->getShapeType() == BOX_SHAPE_PROXYTYPE)
 					renderBox(bodies[i]);
 			}
 
-			
+
 			for (int i = 0; i < ghostObject->getNumOverlappingObjects(); i++) {
 				btRigidBody *pRigidBody = dynamic_cast<btRigidBody *>(ghostObject->getOverlappingObject(i));
-				if (pRigidBody) {					
+				if (pRigidBody) {
 					pRigidBody->applyCentralImpulse(btVector3(0.0f, 10.0f, 0.0f));
 				}
 			}
@@ -197,7 +198,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	delete quad;
 	delete skyBox;
 
-	for (int i = 0; i<bodies.size(); i++){
+	for (int i = 0; i<bodies.size(); i++) {
 		world->removeCollisionObject(bodies[i]);
 		btMotionState* motionState = bodies[i]->getMotionState();
 		btCollisionShape* shape = bodies[i]->getCollisionShape();
@@ -209,13 +210,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	delete collisionConfig;
 	delete solver;
 	//delete broadphase;
-	
+
 	btCollisionShape* shape = ghostObject->getCollisionShape();
 	delete ghostObject;
-	delete shape;	
+	delete shape;
 	delete charCon;
 	delete world;
-	
+
 	return msg.wParam;
 }
 
@@ -236,7 +237,7 @@ LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	}
 
 	case WM_CREATE: {
-		
+
 		GetClientRect(hWnd, &rect);
 		g_OldCursorPos.x = rect.right / 2;
 		g_OldCursorPos.y = rect.bottom / 2;
@@ -282,7 +283,7 @@ LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		case VK_CONTROL: {
 			//just use left control
 			if ((lParam & 0x01000000) == 0) {
-				
+
 			}
 		}break;
 		case 'v': case 'V': {
@@ -293,7 +294,7 @@ LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		case 'z': case 'Z': {
 			enableWireframe(!g_enableWireframe);
 		}break;
-		
+
 			return 0;
 		}break;
 
@@ -312,7 +313,7 @@ LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		glViewport(0, 0, _width, _height);
 		camera.perspective(45.0f, static_cast<float>(_width) / static_cast<float>(_height), 1.0f, 5000.0f);
 
-		
+
 		return 0;
 	}break;
 
@@ -353,7 +354,7 @@ void initApp(HWND hWnd) {
 	nPixelFormat = ChoosePixelFormat(hDC, &pfd);	// choose best matching pixel format
 	SetPixelFormat(hDC, nPixelFormat, &pfd);		// set pixel format to device context
 
-	// create rendering context and make it current
+													// create rendering context and make it current
 	hRC = wglCreateContext(hDC);
 	wglMakeCurrent(hDC, hRC);
 	ReleaseDC(hWnd, hDC);
@@ -362,10 +363,10 @@ void initApp(HWND hWnd) {
 	glEnable(GL_DEPTH_TEST);					// hidden surface removal
 	glEnable(GL_CULL_FACE);						// do not calculate inside of poly's
 
-	//setup the camera.
+												//setup the camera.
 	camera = Camera(Vector3f(0.0f, 20.0f, 220.f), Vector3f(0.0f, 20.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f));
 	camera.perspective(45.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 5000.0f);
-	
+
 	//initialize the skybox
 	skyBox = new SkyBox("../skyboxes/sor_sea", 1000, false, false, Vector3f(0.0f, 0.5f, 0.0f));
 	//skyBox = new SkyBox("../skyboxes/sea", 1000, false, true, Vector3f(0.0f, 0.5f, 0.0f));
@@ -389,32 +390,32 @@ void initApp(HWND hWnd) {
 	world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig);
 	world->setGravity(btVector3(0, -100, 0));	//gravity on Earth
 
-	//create btPlane
-	/*btTransform transPlane;
-	transPlane.setIdentity();
-	transPlane.setOrigin(btVector3(0, 0, 0));
-	btStaticPlaneShape* btPlane = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
-	btMotionState* motionPlane = new btDefaultMotionState(transPlane);
-	btRigidBody::btRigidBodyConstructionInfo infoPlane(0.0, motionPlane, btPlane);
-	btRigidBody* bodyPlane = new btRigidBody(infoPlane);
-	world->addRigidBody(bodyPlane);
-	bodies.push_back(bodyPlane);*/
+												//create btPlane
+												/*btTransform transPlane;
+												transPlane.setIdentity();
+												transPlane.setOrigin(btVector3(0, 0, 0));
+												btStaticPlaneShape* btPlane = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
+												btMotionState* motionPlane = new btDefaultMotionState(transPlane);
+												btRigidBody::btRigidBodyConstructionInfo infoPlane(0.0, motionPlane, btPlane);
+												btRigidBody* bodyPlane = new btRigidBody(infoPlane);
+												world->addRigidBody(bodyPlane);
+												bodies.push_back(bodyPlane);*/
 
-	//create btBox
+												//create btBox
 	btTransform transBox;
 	transBox.setIdentity();
 	transBox.setOrigin(btVector3(0, 0, 0));
 	btBoxShape* btBox = new btBoxShape(btVector3(1024.0f / 2.0, 0.0, 1024.0f / 2.0));
 	btMotionState* motionBox = new btDefaultMotionState(transBox);
 	btRigidBody::btRigidBodyConstructionInfo infoBox(0.0, motionBox, btBox);
-	btRigidBody* bodyBox = new btRigidBody(infoBox);	
+	btRigidBody* bodyBox = new btRigidBody(infoBox);
 	bodyBox->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT); //determine the internal collision handling, this setting goes over group and mask setting
 	bodies.push_back(bodyBox);
 
 	world->addCollisionObject(bodyBox, COL_BOX, COL_GHOST | COL_SPHERE1 | COL_SPHERE2); //determine wich group collides with wich group  "rigidBody | group | collides with"
-	
-	
-	//create btSpehere1
+
+
+																						//create btSpehere1
 	btTransform transS1;
 	transS1.setIdentity();
 	transS1.setOrigin(btVector3(30.0, 20.0, 0.0));
@@ -463,7 +464,7 @@ void initApp(HWND hWnd) {
 	charCon = new btKinematicCharacterController(ghostObject, ghostShape, 0.35f);
 	charCon->setGravity(btVector3(0, -100, 0));
 	charCon->setMaxJumpHeight(20.0);
-	
+
 	world->addAction(charCon);
 }
 
@@ -494,7 +495,8 @@ void enableWireframe(bool enableWireframe) {
 
 	if (g_enableWireframe) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}else {
+	}
+	else {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 }
@@ -523,7 +525,7 @@ void processInput(HWND hWnd) {
 		SetCursor(NULL);
 		// Retrieve the cursor position
 		GetCursorPos(&CursorPos);
-		
+
 		// Calculate mouse rotational values
 		X = (float)(g_OldCursorPos.x - CursorPos.x) * 0.1;
 		Y = (float)(g_OldCursorPos.y - CursorPos.y) * 0.1;
@@ -588,7 +590,7 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 
 		if (Direction || (pKeyBuffer[VK_RCONTROL] & 0xF0)) UPDATEFRAME = true;
 
-		
+
 		if (UPDATEFRAME) {
 
 			if ((pKeyBuffer[VK_RCONTROL] & 0xF0) && charCon->onGround()) {
@@ -610,22 +612,23 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 			if (Direction & DIR_RIGHT) {
 				dir += rl;
 			}
-			
+
 			if (charCon->onGround())
 				charCon->setWalkDirection(btVector3(dir[0], 0, dir[2]));
 			else
 				charCon->setWalkDirection(btVector3(dir[0], 0, dir[2]) * 0.5f);
-			
+
 			btVector3 pos = t.getOrigin();
 			camera.setPosition(pos.getX(), pos.getY(), pos.getZ());
 
-		}else {
+		}
+		else {
 			charCon->setWalkDirection(btVector3(0, 0, 0));
 		}
 	}
 }
 
-btRigidBody* addSphere(float rad, float x, float y, float z, float mass){
+btRigidBody* addSphere(float rad, float x, float y, float z, float mass) {
 
 	btTransform t;	//position and rotation
 	t.setIdentity();
@@ -644,7 +647,7 @@ btRigidBody* addSphere(float rad, float x, float y, float z, float mass){
 	return body;
 }
 
-void renderSphere(btRigidBody* _sphere){
+void renderSphere(btRigidBody* _sphere) {
 	if (_sphere->getCollisionShape()->getShapeType() != SPHERE_SHAPE_PROXYTYPE)	//only render, if it's a sphere
 		return;
 	float r = ((btSphereShape*)_sphere->getCollisionShape())->getRadius();
@@ -654,13 +657,13 @@ void renderSphere(btRigidBody* _sphere){
 	t.getOpenGLMatrix(mat);	//OpenGL matrix stores the rotation and orientation
 
 	sphere->setTransformation(Matrix4f(mat[0], mat[4], mat[8], mat[12],
-										 mat[1], mat[5], mat[9], mat[13],
-										 mat[2], mat[6], mat[10], mat[14],
-										 mat[3], mat[7], mat[11], mat[15]));
+		mat[1], mat[5], mat[9], mat[13],
+		mat[2], mat[6], mat[10], mat[14],
+		mat[3], mat[7], mat[11], mat[15]));
 	sphere->draw(camera);
 }
 
-void renderPlane(btRigidBody* _plane){
+void renderPlane(btRigidBody* _plane) {
 	if (_plane->getCollisionShape()->getShapeType() != STATIC_PLANE_PROXYTYPE)
 		return;
 	btTransform t;
@@ -669,9 +672,9 @@ void renderPlane(btRigidBody* _plane){
 	t.getOpenGLMatrix(mat);
 
 	quad->setTransformation(Matrix4f(mat[0], mat[4], mat[8], mat[12],
-									   mat[1], mat[5], mat[9], mat[13],
-									   mat[2], mat[6], mat[10], mat[14],
-									   mat[3], mat[7], mat[11], mat[15]));
+		mat[1], mat[5], mat[9], mat[13],
+		mat[2], mat[6], mat[10], mat[14],
+		mat[3], mat[7], mat[11], mat[15]));
 	quad->draw(camera);
 }
 
