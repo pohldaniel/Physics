@@ -96,7 +96,8 @@ void enableVerticalSync(bool enableVerticalSync);
 
 void initApp(HWND hWnd);
 void processInput(HWND hWnd);
-void updateFrame(HWND hWnd, double elapsedTimeSec);
+void updateDyn(HWND hWnd, double elapsedTimeSec);
+void updateKin(HWND hWnd, double elapsedTimeSec);
 // the main windows entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 
@@ -257,8 +258,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			sphere->draw(camera);
 
 			processInput(hwnd);
-			updateFrame(hwnd, delta_Time);
-
+			updateDyn(hwnd, delta_Time);
+			updateKin(hwnd, delta_Time);
 			hdc = GetDC(hwnd);
 			SwapBuffers(hdc);
 			ReleaseDC(hwnd, hdc);
@@ -488,7 +489,7 @@ void initApp(HWND hWnd) {
 	btRigidBody::btRigidBodyConstructionInfo cInfoChar(10.0, motionStateChar, charShape, localInertiaChar);
 
 	dynamicCharacterController = new DynamicCharacterController();
-	dynamicCharacterController->create(new btRigidBody(cInfoChar), world, COL_GHOST, COL_BOX);
+	dynamicCharacterController->create(new btRigidBody(cInfoChar), world, COL_GHOST, COL_BOX | COL_GHOST);
 	dynamicCharacterController->setSlopeAngle(30);
 	dynamicCharacterController->setDistanceOffset(0.1f);
 
@@ -506,7 +507,7 @@ void initApp(HWND hWnd) {
 	ghostObject->setCollisionShape(ghostShape);
 	ghostObject->setWorldTransform(startTransform);
 	ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
-	world->addCollisionObject(ghostObject, COL_GHOST, COL_BOX);
+	world->addCollisionObject(ghostObject, COL_GHOST, COL_BOX | COL_GHOST);
 
 	charCon = new btKinematicCharacterController(ghostObject, ghostShape, 0.35f);
 	charCon->setGravity(btVector3(0, -100, 0));
@@ -607,7 +608,7 @@ void processInput(HWND hWnd) {
 }
 
 
-void updateFrame(HWND hWnd, double elapsedTimeSec) {
+void updateDyn(HWND hWnd, double elapsedTimeSec) {
 
 	static UCHAR pKeyBuffer[256];
 	ULONG        Direction = 0;
@@ -623,6 +624,81 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 	if (pKeyBuffer[VK_LEFT] & 0xF0) Direction |= DIR_LEFT;
 	if (pKeyBuffer[VK_RIGHT] & 0xF0) Direction |= DIR_RIGHT;
 
+	float pitch = 0.0f;
+	float heading = 0.0f;
+
+	if (GetCapture() == hWnd) {
+		// hide the mouse pointer
+		SetCursor(NULL);
+
+		Vector3f fb = camera.getViewDirection();
+		Vector3f rl = Vector3f::Cross(camera.getViewDirection(), camera.getCamY());
+		Vector3f dir(0.0f, 0.0f, 0.0f);
+	
+		if (Direction || (pKeyBuffer[VK_RCONTROL] & 0xF0)) UPDATEFRAME = false;
+
+		if ((pKeyBuffer[VK_RCONTROL] & 0xF0) && dynamicCharacterController->onGround()) {
+			dynamicCharacterController->jump(btVector3(0, 1, 0), 600);
+			
+		}
+
+		if (Direction & DIR_FORWARD) {
+			dir += fb;
+		}
+
+		if (Direction & DIR_BACKWARD) {
+			dir -= fb;
+		}
+
+
+		if (Direction & DIR_LEFT) {
+			dir -= rl;
+		}
+
+		if (Direction & DIR_RIGHT) {
+			dir += rl;
+		}
+
+		if (dynamicCharacterController->onGround() && !Direction) {
+			btVector3 posDyn = dynamicCharacterController->getRigidBody()->getWorldTransform().getOrigin();
+			btVector3 linVel = m_groundBody->getVelocityInLocalPoint(posDyn);
+			float x = linVel.x(), z = linVel.z();
+			//if(abs(x) < 0.3 ) x = 0; if(abs(z) < 0.3) z = 0;
+			dynamicCharacterController->setMovementXZ(Vector2f(x, z));
+			btVector3 posKin = charCon->getGhostObject()->getWorldTransform().getOrigin();
+			btVector3 quadOrigin = m_groundBody->getWorldTransform().getOrigin();
+
+		}else if (dynamicCharacterController->onGround() && Direction) {
+			//btVector3 pos = dynamicCharacterController2->getRigidBody()->getCenterOfMassPosition();
+			//btVector3 linVel = m_groundBody->getVelocityInLocalPoint(pos).normalized();
+			//dynamicCharacterController2->setMovementXZ(Vector2f(dir[0] + linVel.x(), dir[2] + linVel.z()) * 5.0);		
+			dynamicCharacterController->setMovementXZ(Vector2f(dir[0], dir[2]) * 50.0);
+			
+		//jumping case
+		}else {
+
+			dynamicCharacterController->setMovementXZ(Vector2f(dir[0], dir[2]) * 100.0);
+		}
+
+		if (UPDATEFRAME) {
+			btTransform t;
+			t = dynamicCharacterController->getRigidBody()->getWorldTransform();
+			btVector3 pos = t.getOrigin();
+			camera.setPosition(pos.getX(), pos.getY(), pos.getZ());
+		}
+	}
+}
+
+void updateKin(HWND hWnd, double elapsedTimeSec) {
+	static UCHAR pKeyBuffer[256];
+	ULONG        Direction = 0;
+	POINT        CursorPos;
+	float        X = 0.0f, Y = 0.0f;
+
+	// Retrieve keyboard state
+	if (!GetKeyboardState(pKeyBuffer)) return;
+
+	// Check the relevant keys
 	if (pKeyBuffer[VK_NUMPAD8] & 0xF0) Direction |= DIR_FORWARD2;
 	if (pKeyBuffer[VK_NUMPAD5] & 0xF0) Direction |= DIR_BACKWARD2;
 	if (pKeyBuffer[VK_NUMPAD4] & 0xF0) Direction |= DIR_LEFT2;
@@ -637,61 +713,35 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 
 		Vector3f fb = camera.getViewDirection();
 		Vector3f rl = Vector3f::Cross(camera.getViewDirection(), camera.getCamY());
-		Vector3f dir(0.0f, 0.0f, 0.0f);
 		Vector3f dirKin(0.0f, 0.0f, 0.0f);
 
 		if (Direction || (pKeyBuffer[VK_RCONTROL] & 0xF0)) UPDATEFRAME = false;
 
-		if ((pKeyBuffer[VK_RCONTROL] & 0xF0) && dynamicCharacterController->onGround()) {
+		if ((pKeyBuffer[VK_RCONTROL] & 0xF0) && charCon->onGround()) {
 			charCon->jump(btVector3(0, 60, 0));
-			dynamicCharacterController->jump(btVector3(0, 1, 0), 600);
 			colPoint.active = false;
-			//colPoint.upward = true;
 			colPoint.rad = 0.0f;
 			colPoint.angle = 0.0f;
-		}
-
-		if (Direction & DIR_FORWARD) {
-			dir += fb;
 		}
 
 		if (Direction & DIR_FORWARD2) {
 			dirKin += fb;
 		}
 
-		if (Direction & DIR_BACKWARD) {
-			dir -= fb;
-		}
-
 		if (Direction & DIR_BACKWARD2) {
 			dirKin -= fb;
-		}
-
-		if (Direction & DIR_LEFT) {
-			dir -= rl;
 		}
 
 		if (Direction & DIR_LEFT2) {
 			dirKin -= rl;
 		}
 
-		if (Direction & DIR_RIGHT) {
-			dir += rl;
-		}
-
 		if (Direction & DIR_RIGHT2) {
 			dirKin += rl;
 		}
 
-		if (dynamicCharacterController->onGround() && !Direction) {
-			btVector3 posDyn = dynamicCharacterController->getRigidBody()->getWorldTransform().getOrigin();
-			btVector3 linVel = m_groundBody->getVelocityInLocalPoint(posDyn);
-			float x = linVel.x(), z = linVel.z();
-			//if(abs(x) < 0.3 ) x = 0; if(abs(z) < 0.3) z = 0;
-			dynamicCharacterController->setMovementXZ(Vector2f(x, z));
-			btVector3 posKin = charCon->getGhostObject()->getWorldTransform().getOrigin();
-			btVector3 quadOrigin = m_groundBody->getWorldTransform().getOrigin();
-
+		if (charCon->onGround() && !Direction) {
+			
 			if (colPoint.active) {
 				btMatrix3x3 rot;
 				rot.setEulerZYX(0.0, colPoint.rad, 0.0);
@@ -700,7 +750,7 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 				rot[0][1] = 0; rot[1][1] = 0; rot[2][1] = 0;
 				//rot[0][2] = 0; rot[1][2] = 0; rot[2][2] = 0;
 
-				btVector3 tmp = rot * (colPoint.position);				
+				btVector3 tmp = rot * (colPoint.position);
 				btTransform transform = charCon->getGhostObject()->getWorldTransform();
 				transform.setOrigin(btVector3(tmp[0], colPoint.position[1], tmp[2]));
 				charCon->getGhostObject()->setWorldTransform(transform);
@@ -708,21 +758,15 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 				colPoint.angle = colPoint.angle + angVelY;
 				colPoint.rad = (PI * colPoint.angle) / 180.0f;
 			}
-
-		}else if (dynamicCharacterController->onGround() && Direction) {
-			//btVector3 pos = dynamicCharacterController2->getRigidBody()->getCenterOfMassPosition();
-			//btVector3 linVel = m_groundBody->getVelocityInLocalPoint(pos).normalized();
-			//dynamicCharacterController2->setMovementXZ(Vector2f(dir[0] + linVel.x(), dir[2] + linVel.z()) * 5.0);		
-			dynamicCharacterController->setMovementXZ(Vector2f(dir[0], dir[2]) * 50.0);
+		}else if (charCon->onGround() && Direction) {
+			
 			charCon->setWalkDirection(btVector3(dirKin[0], 0, dirKin[2]) * 0.8);
 			colPoint.active = false;
 			colPoint.rad = 0.0f;
 			colPoint.angle = 0.0f;
-			//jumping case
+		//jumping case
 		}else {
-
-			dynamicCharacterController->setMovementXZ(Vector2f(dir[0], dir[2]) * 100.0);
-			charCon->setWalkDirection(btVector3(dirKin[0], 0, dirKin[2]) );
+			charCon->setWalkDirection(btVector3(dirKin[0], 0, dirKin[2]));
 			colPoint.active = false;
 			colPoint.rad = 0.0f;
 			colPoint.angle = 0.0f;
@@ -741,11 +785,11 @@ void kinematicPreTickCallback(btDynamicsWorld* world, btScalar deltaTime) {
 	btRigidBody* groundBody = (btRigidBody*)world->getWorldUserInfo();
 	btTransform predictedTrans;
 
-	/*btTransform t;
+	btTransform t;
 	groundBody->getMotionState()->getWorldTransform(t);
 	float height = t.getOrigin().y();
 	if (upward & height > 0.0f) {
-	velY = -16.0f;
+		velY = -16.0f;
 	upward = false;
 	dynamicCharacterController->setDistanceOffset(0.1);
 	}
@@ -754,7 +798,7 @@ void kinematicPreTickCallback(btDynamicsWorld* world, btScalar deltaTime) {
 	velY = 16.0f;
 	upward = true;
 	dynamicCharacterController->setDistanceOffset(0.33);
-	}*/
+	}
 
 	btVector3 linearVelocity(0, velY, 0);
 	btVector3 angularVelocity(0, angVelY, 0);
