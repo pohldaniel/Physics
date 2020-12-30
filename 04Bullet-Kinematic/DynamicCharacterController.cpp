@@ -8,7 +8,7 @@
 	const uint32_t BULLET_OBJECT_ALIGNMENT = 16;
 
 
-	const float DEFAULT_STEP_HEIGHT = 0.05f; // The default amount to move the character up before resolving collisions.
+	const float DEFAULT_STEP_HEIGHT = 0.1f; // The default amount to move the character up before resolving collisions.
 
 	const btVector3 UP_VECTOR(0.0f, 1.0f, 0.0f);
 	const btVector3 ZERO_VECTOR(0.0f, 0.0f, 0.0f);
@@ -85,6 +85,7 @@ DynamicCharacterController::DynamicCharacterController()
 	, mOnSteepSlope(false)
 	, mStepHeight(DEFAULT_STEP_HEIGHT)
 	, mMaxClimbSlopeAngle(0.6f)
+	, mDistanceOffset(0.1f)
 	, mIsStepping(false)
 {
 	mSlopeNormal.setZero();
@@ -129,6 +130,11 @@ void DynamicCharacterController::create(btRigidBody* rigidBody, btDynamicsWorld*
 	mRigidBody->setActivationState(DISABLE_DEACTIVATION);
 	mRigidBody->setUserPointer(rigidBodyUserPointer);
 
+	//mRigidBody->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
+	mRigidBody->setCollisionFlags(btCollisionObject::CF_DYNAMIC_OBJECT);
+	//mRigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
+	
+
 	mRigidBody->setAngularFactor(ZERO_VECTOR); // No rotation allowed. We only rotate the visuals.
 	mRigidBody->setSleepingThresholds(0.0, 0.0);
 	physicsWorld->addRigidBody(mRigidBody, collisionFilterGroup, collisionFilterMask);
@@ -145,30 +151,41 @@ void DynamicCharacterController::destroy()
 	mCollisionWorld = nullptr;
 }
 
-void DynamicCharacterController::setParameters(float maxClimbSlopeAngle)
-{
+void DynamicCharacterController::setParameters(float maxClimbSlopeAngle){
 	mMaxClimbSlopeAngle = maxClimbSlopeAngle;
+}
+
+void DynamicCharacterController::setSlopeAngle(float degrees) {
+	mMaxClimbSlopeAngle = cos(degrees * PI * (1.0f / 180.0f));
+}
+
+void DynamicCharacterController::setDistanceOffset(float value) {
+	mDistanceOffset = value;
 }
 
 void DynamicCharacterController::preStep()
 {
+	
 	mIsStepping = true;
 
-	if (mOnSteepSlope)
-	{
+	if (mOnSteepSlope){
 		btVector3 uAxis = mSlopeNormal.cross(UP_VECTOR).normalize();
 		btVector3 vAxis = uAxis.cross(mSlopeNormal);
 		btVector3 fixVel = vAxis / mSlopeNormal.dot(UP_VECTOR);
 		mRigidBody->setLinearVelocity(mRigidBody->getLinearVelocity() - fixVel);
 	}
 
-	// Move character upwards.
+	// Move character upwards. (Bump over stairs)
 	moveCharacterAlongY(mStepHeight);
 
 	// Set the linear velocity based on the movement vector. Don't adjust the Y-component, instead let Bullet handle that.
-	if (mOnGround)
-	{
-		//std::cout << mCharacterMovementX << "  " << mCharacterMovementZ << std::endl;
+	if (mOnGround){		
+		btVector3 linVel = mRigidBody->getLinearVelocity();
+		linVel.setX(mCharacterMovementX);
+		linVel.setZ(mCharacterMovementZ);
+		linVel.setY(0);
+		mRigidBody->setLinearVelocity(linVel);
+	}else if(!mOnGround){
 		btVector3 linVel = mRigidBody->getLinearVelocity();
 		linVel.setX(mCharacterMovementX);
 		linVel.setZ(mCharacterMovementZ);
@@ -238,12 +255,12 @@ void DynamicCharacterController::postStep()
 	callback.m_collisionFilterMask = mRigidBody->getBroadphaseHandle()->m_collisionFilterMask;
 
 	mCollisionWorld->convexSweepTest((btConvexShape*)mShape, tsFrom, tsTo, callback, mCollisionWorld->getDispatchInfo().m_allowedCcdPenetration);
-
+	
 	if (callback.hasHit())
 	{
 		btVector3 end = from + (to - from) * callback.m_closestHitFraction;
 		btVector3 normal = callback.m_hitNormalWorld;
-
+		
 		// Slope test.
 		btScalar slopeDot = normal.dot(btVector3(0, 1, 0));
 		mOnSteepSlope = (slopeDot < mMaxClimbSlopeAngle);
@@ -251,7 +268,8 @@ void DynamicCharacterController::postStep()
 
 		// Compute distance to the floor.
 		float distance = btDistance(end, from);
-		mOnGround = (distance < 0.1f && !mOnSteepSlope);
+		
+		mOnGround = (distance < mDistanceOffset && !mOnSteepSlope);
 
 		// Move down.
 		if (distance < mStepHeight)
@@ -285,8 +303,8 @@ bool DynamicCharacterController::onGround() const
 
 void DynamicCharacterController::jump(const btVector3& direction, float force)
 {
-	if (mOnGround)
-	{
+	if (mOnGround){
+		mOnGround = false;
 		mRigidBody->applyCentralImpulse(direction * force);
 	}
 }
@@ -295,10 +313,19 @@ void DynamicCharacterController::setMovementXZ(const Vector2f& movementVector)
 {
 	mCharacterMovementX = movementVector[0];
 	mCharacterMovementZ = movementVector[1];
+	//mCharacterMovementY = 0;
+}
+
+void  DynamicCharacterController::setMovementXYZ(const btVector3& movementVector) 
+{
+	mCharacterMovementX = movementVector[0];
+	mCharacterMovementY = movementVector[1];
+	mCharacterMovementZ = movementVector[2];
 }
 
 void DynamicCharacterController::setLinearVelocity(const btVector3& vel)
 {
+	
 	mRigidBody->setLinearVelocity(vel);
 }
 

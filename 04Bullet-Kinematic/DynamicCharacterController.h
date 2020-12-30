@@ -14,16 +14,6 @@
 class DynamicCharacterController {
 	public:
 
-		enum collisiontypes {
-			COL_NOTHING = 0,
-			COL_SPHERE1 = 1,
-			COL_SPHERE2 = 2,
-			COL_GHOST = 4,
-			COL_BOX = 8,
-
-			COL_FORCE_8BIT = 0xFF
-		};
-
 		DynamicCharacterController();
 		~DynamicCharacterController();
 
@@ -32,6 +22,8 @@ class DynamicCharacterController {
 		void destroy();
 
 		void setParameters(float maxClimbSlopeAngle);
+		void setSlopeAngle(float degrees);
+		void setDistanceOffset(float value);
 
 		void preStep(); // Call before the physics are stepped.
 		void postStep(); // Call after the physics are stepped.
@@ -41,6 +33,7 @@ class DynamicCharacterController {
 		void jump(const btVector3& direction, float force);
 
 		void setMovementXZ(const Vector2f& movementVector);
+		void setMovementXYZ(const btVector3& movementVector);
 
 		void setLinearVelocity(const btVector3& vel);
 		const btVector3& getLinearVelocity();
@@ -60,9 +53,13 @@ class DynamicCharacterController {
 		btVector3 mSlopeNormal;
 		float mStepHeight;
 		float mMaxClimbSlopeAngle;
+		float mDistanceOffset;
 		bool mIsStepping;
+		
 
 		float mCharacterMovementX;
 		float mCharacterMovementZ;
+
+		float mCharacterMovementY;
 };
 #endif // _BASIS3STEPCHARACTERCONTROLLER_H_INCLUDED_

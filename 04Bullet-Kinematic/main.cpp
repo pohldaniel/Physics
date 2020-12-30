@@ -27,12 +27,12 @@ POINT g_OldCursorPos;
 bool g_enableVerticalSync;
 bool g_enableWireframe;
 
-enum collisiontypes{
-	COL_NOTHING = 0,  
-	COL_SPHERE1 = 1,  
-	COL_SPHERE2 = 2, 
-	COL_GHOST   = 4, 
-	COL_BOX		= 8,  
+enum collisiontypes {
+	COL_NOTHING = 0,
+	COL_SPHERE1 = 1,
+	COL_SPHERE2 = 2,
+	COL_GHOST = 4,
+	COL_BOX = 8,
 
 	COL_FORCE_8BIT = 0xFF
 };
@@ -44,27 +44,49 @@ enum DIRECTION {
 	DIR_RIGHT = 8,
 	DIR_UP = 16,
 	DIR_DOWN = 32,
+	DIR_FORWARD2 = 64,
+	DIR_BACKWARD2 = 128,
+	DIR_LEFT2 = 256,
+	DIR_RIGHT2 = 512,
 
 	DIR_FORCE_32BIT = 0x7FFFFFFF
+};
+
+struct ColPoint {
+	btVector3 position = btVector3(0.0f, 0.0f, 0.0f);
+	btTransform transform;
+	bool active = false;
+	bool upward = false;
+
+	float angle = 0.0;
+	float rad = 0.0;
 };
 
 SkyBox* skyBox;
 Camera camera;
 MeshSphere *sphere;
 MeshQuad *quad;
-MeshCube *cube;
+MeshCube *cube, *cube2;
 bool UPDATEFRAME = false;
 double delta_Time;
 
-btDynamicsWorld* world;	
-btDispatcher* dispatcher;	
-btCollisionConfiguration* collisionConfig;	
-btBroadphaseInterface* broadphase;	
+btDynamicsWorld* world;
+btDispatcher* dispatcher;
+btCollisionConfiguration* collisionConfig;
+btBroadphaseInterface* broadphase;
 btConstraintSolver* solver;
 
 btRigidBody* m_groundBody;
-DynamicCharacterController *dynamicCharacterController;
 void kinematicPreTickCallback(btDynamicsWorld* world, btScalar deltaTime);
+
+DynamicCharacterController *dynamicCharacterController;
+btKinematicCharacterController* charCon;
+btPairCachingGhostObject* ghostObject;
+bool upward = true;
+float velY = 0.0;
+float  angVelY = 0.1;
+
+ColPoint colPoint;
 
 //prototype funktions
 LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParma, LPARAM lParam);
@@ -144,17 +166,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// main message loop
 	while (true) {
 
-		// Did we recieve a message, or are we idling ?
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+			// Did we recieve a message, or are we idling ?
+			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 
-			// test if this is a quit
-			if (msg.message == WM_QUIT) break;
-			// translate and dispatch message
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+				// test if this is a quit
+				if (msg.message == WM_QUIT) break;
+				// translate and dispatch message
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
 
-		}else {
-			
+			}else {
+
 			end = start;
 			start = std::chrono::high_resolution_clock::now();
 			deltaTime = start - end;
@@ -162,30 +184,77 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 			glClearColor(1.0, 1.0, 1.0, 1.0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			
+
 			dynamicCharacterController->preStep();
 			world->stepSimulation(1.0 / 60.0);
 			dynamicCharacterController->postStep();
-			
+
 			skyBox->draw(camera);
+
+			{
+				btManifoldArray	manifoldArray;
+				btBroadphasePairArray& pairArray = ghostObject->getOverlappingPairCache()->getOverlappingPairArray();
+				int numPairs = pairArray.size();
+
+				for (int i = 0; i<numPairs; i++){
+
+					manifoldArray.clear();
+
+					const btBroadphasePair& pair = pairArray[i];
+
+					btBroadphasePair* collisionPair = broadphase->getOverlappingPairCache()->findPair(pair.m_pProxy0, pair.m_pProxy1);
+					if (!collisionPair)
+							continue;
+
+					if (collisionPair->m_algorithm)
+					collisionPair->m_algorithm->getAllContactManifolds(manifoldArray);
+
+					for (int j = 0; j<manifoldArray.size(); j++){
+
+						btPersistentManifold* manifold = manifoldArray[j];
+						for (int p = 0; p<manifold->getNumContacts(); p++){
+
+							const btManifoldPoint&pt = manifold->getContactPoint(p);
+
+							const btVector3& ptA = pt.getPositionWorldOnA();
+							const btVector3& ptB = pt.getPositionWorldOnB();
+							const btVector3& normalOnB = pt.m_normalWorldOnB;
+
+							if (!colPoint.active) {
+								colPoint.position = ptB + btVector3(0, 5.0, 0);		
+								colPoint.active = true;	
+							}
+						}
+					}
+				}
+			}
 
 			btTransform t;
 			m_groundBody->getMotionState()->getWorldTransform(t);
 			float mat[16];
 			t.getOpenGLMatrix(mat);
 			quad->setTransformation(Matrix4f(mat[0], mat[4], mat[8], mat[12],
-											 mat[1], mat[5], mat[9], mat[13],
-											 mat[2], mat[6], mat[10], mat[14],
-											 mat[3], mat[7], mat[11], mat[15]));
+				mat[1], mat[5], mat[9], mat[13],
+				mat[2], mat[6], mat[10], mat[14],
+				mat[3], mat[7], mat[11], mat[15]));
 			quad->draw(camera);
 
 			dynamicCharacterController->getRigidBody()->getMotionState()->getWorldTransform(t);
 			t.getOpenGLMatrix(mat);
 			cube->setTransformation(Matrix4f(mat[0], mat[4], mat[8], mat[12],
-											 mat[1], mat[5], mat[9], mat[13],
-											 mat[2], mat[6], mat[10], mat[14],
-											 mat[3], mat[7], mat[11], mat[15]));
+				mat[1], mat[5], mat[9], mat[13],
+				mat[2], mat[6], mat[10], mat[14],
+				mat[3], mat[7], mat[11], mat[15]));
 			cube->draw(camera);
+
+
+			t = charCon->getGhostObject()->getWorldTransform();
+			t.getOpenGLMatrix(mat);
+			sphere->setTransformation(Matrix4f(mat[0], mat[4], mat[8], mat[12],
+				mat[1], mat[5], mat[9], mat[13],
+				mat[2], mat[6], mat[10], mat[14],
+				mat[3], mat[7], mat[11], mat[15]));
+			sphere->draw(camera);
 
 			processInput(hwnd);
 			updateFrame(hwnd, delta_Time);
@@ -201,24 +270,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	delete skyBox;
 
 	/*for (int i = 0; i<bodies.size(); i++){
-		world->removeCollisionObject(bodies[i]);
-		btMotionState* motionState = bodies[i]->getMotionState();
-		btCollisionShape* shape = bodies[i]->getCollisionShape();
-		delete bodies[i];
-		delete shape;
-		delete motionState;
+	world->removeCollisionObject(bodies[i]);
+	btMotionState* motionState = bodies[i]->getMotionState();
+	btCollisionShape* shape = bodies[i]->getCollisionShape();
+	delete bodies[i];
+	delete shape;
+	delete motionState;
 	}
 	//delete dispatcher;
 	delete collisionConfig;
 	delete solver;
 	//delete broadphase;
-	
+
 	btCollisionShape* shape = ghostObject->getCollisionShape();
 	//delete ghostObject;
-	//delete shape;	
+	//delete shape;
 	//delete charCon;
 	delete world;*/
-	
+
 	return msg.wParam;
 }
 
@@ -239,7 +308,7 @@ LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	}
 
 	case WM_CREATE: {
-		
+
 		GetClientRect(hWnd, &rect);
 		g_OldCursorPos.x = rect.right / 2;
 		g_OldCursorPos.y = rect.bottom / 2;
@@ -278,7 +347,7 @@ LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		case VK_CONTROL: {
 			//just use left control
 			if ((lParam & 0x01000000) == 0) {
-				
+
 			}
 		}break;
 		case 'v': case 'V': {
@@ -289,7 +358,7 @@ LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		case 'z': case 'Z': {
 			enableWireframe(!g_enableWireframe);
 		}break;
-		
+
 			return 0;
 		}break;
 
@@ -308,7 +377,7 @@ LRESULT CALLBACK winProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		glViewport(0, 0, _width, _height);
 		camera.perspective(45.0f, static_cast<float>(_width) / static_cast<float>(_height), 1.0f, 5000.0f);
 
-		
+
 		return 0;
 	}break;
 
@@ -349,7 +418,7 @@ void initApp(HWND hWnd) {
 	nPixelFormat = ChoosePixelFormat(hDC, &pfd);	// choose best matching pixel format
 	SetPixelFormat(hDC, nPixelFormat, &pfd);		// set pixel format to device context
 
-	// create rendering context and make it current
+													// create rendering context and make it current
 	hRC = wglCreateContext(hDC);
 	wglMakeCurrent(hDC, hRC);
 	ReleaseDC(hWnd, hDC);
@@ -358,10 +427,10 @@ void initApp(HWND hWnd) {
 	glEnable(GL_DEPTH_TEST);					// hidden surface removal
 	glEnable(GL_CULL_FACE);						// do not calculate inside of poly's
 
-	//setup the camera.
+												//setup the camera.
 	camera = Camera(Vector3f(0.0f, 20.0f, 220.f), Vector3f(0.0f, 20.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f));
 	camera.perspective(45.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 5000.0f);
-	
+
 	//initialize the skybox
 	skyBox = new SkyBox("../skyboxes/sor_sea", 1000, false, false, Vector3f(0.0f, 0.5f, 0.0f));
 	//skyBox = new SkyBox("../skyboxes/sea", 1000, false, true, Vector3f(0.0f, 0.5f, 0.0f));
@@ -369,13 +438,21 @@ void initApp(HWND hWnd) {
 	skyBox->setProjectionMatrix(camera.getProjectionMatrix());
 
 	//setup some meshes
-	quad = new MeshQuad(200, 200, ".\\res\\floor_color_map.png");
+	quad = new MeshQuad(400, 400, ".\\res\\floor_color_map.png");
 	quad->setPrecision(1, 1);
 	quad->buildMesh();
 
 	cube = new MeshCube(10.0, 10.0, 10.0, ".\\res\\marble.png");
 	cube->setPrecision(1, 1);
 	cube->buildMesh4Q();
+
+	cube2 = new MeshCube(10.0, 10.0, 10.0, ".\\res\\darkchecker.png");
+	cube2->setPrecision(1, 1);
+	cube2->buildMesh4Q();
+
+	sphere = new MeshSphere(Vector3f(0.0f, 0.0f, 0.0), 5.0f, ".\\res\\earth2048.png");
+	sphere->setPrecision(20, 20);
+	sphere->buildMesh();
 
 	//pretty much initialize everything logically
 	collisionConfig = new btDefaultCollisionConfiguration();
@@ -386,9 +463,11 @@ void initApp(HWND hWnd) {
 	world->setGravity(btVector3(0, -100, 0));	//gravity on Earth
 
 	//create ground
-	btBoxShape* groundShape = new btBoxShape(btVector3(btScalar(100.), btScalar(0.1), btScalar(100.)));
+	btBoxShape* groundShape = new btBoxShape(btVector3(btScalar(200.), btScalar(0.1), btScalar(200.)));
 	btTransform groundTransform;
 	groundTransform.setIdentity();
+	groundTransform.setRotation(btQuaternion(btVector3(0, 0, 1), (PI * 0.0) / 180.0f));
+
 	btVector3 localInertiaGround(0, 0, 0);
 	btDefaultMotionState* motionStateGround = new btDefaultMotionState(groundTransform);
 	btRigidBody::btRigidBodyConstructionInfo cInfo(0.0, motionStateGround, groundShape, localInertiaGround);
@@ -398,18 +477,42 @@ void initApp(HWND hWnd) {
 	m_groundBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT | btCollisionObject::CF_STATIC_OBJECT);
 	world->addRigidBody(m_groundBody, COL_BOX, COL_GHOST | COL_BOX);
 	world->setInternalTickCallback(kinematicPreTickCallback, m_groundBody, true);
-	
-	//create character
-	btBoxShape* charShape = new btBoxShape(btVector3(5., 5., 5.));	
+
+	//create dynamic character
+	btBoxShape* charShape = new btBoxShape(btVector3(5., 5., 5.));
 	btTransform charTransform;
 	charTransform.setIdentity();
-	charTransform.setOrigin(btVector3(btScalar(0.),btScalar(60.),btScalar(0.)));
+	charTransform.setOrigin(btVector3(btScalar(-160.), btScalar(60.), btScalar(0.)));
 	btVector3 localInertiaChar(0, 0, 0);
 	btDefaultMotionState* motionStateChar = new btDefaultMotionState(charTransform);
 	btRigidBody::btRigidBodyConstructionInfo cInfoChar(10.0, motionStateChar, charShape, localInertiaChar);
-	
+
 	dynamicCharacterController = new DynamicCharacterController();
 	dynamicCharacterController->create(new btRigidBody(cInfoChar), world, COL_GHOST, COL_BOX);
+	dynamicCharacterController->setSlopeAngle(30);
+	dynamicCharacterController->setDistanceOffset(0.1f);
+
+	//create kinaematic player
+	broadphase->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
+
+	btTransform startTransform;
+	startTransform.setIdentity();
+
+	Vector3f pos = camera.getPosition();
+	startTransform.setOrigin(btVector3(btScalar(160.), btScalar(160.), btScalar(0.)));
+	btConvexShape* ghostShape = new btSphereShape(5.0);
+	//btConvexShape* ghostShape = new btBoxShape(btVector3(5., 5., 5.));
+	ghostObject = new btPairCachingGhostObject();
+	ghostObject->setCollisionShape(ghostShape);
+	ghostObject->setWorldTransform(startTransform);
+	ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
+	world->addCollisionObject(ghostObject, COL_GHOST, COL_BOX);
+
+	charCon = new btKinematicCharacterController(ghostObject, ghostShape, 0.35f);
+	charCon->setGravity(btVector3(0, -100, 0));
+	charCon->setMaxJumpHeight(20.0);
+
+	world->addAction(charCon);
 }
 
 void setCursortoMiddle(HWND hwnd) {
@@ -439,7 +542,8 @@ void enableWireframe(bool enableWireframe) {
 
 	if (g_enableWireframe) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}else {
+	}
+	else {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 }
@@ -468,7 +572,7 @@ void processInput(HWND hWnd) {
 		SetCursor(NULL);
 		// Retrieve the cursor position
 		GetCursorPos(&CursorPos);
-		
+
 		// Calculate mouse rotational values
 		X = (float)(g_OldCursorPos.x - CursorPos.x) * 0.1;
 		Y = (float)(g_OldCursorPos.y - CursorPos.y) * 0.1;
@@ -477,7 +581,7 @@ void processInput(HWND hWnd) {
 		SetCursorPos(g_OldCursorPos.x, g_OldCursorPos.y);
 
 		if (Direction > 0 || X != 0.0f || Y != 0.0f) {
-			
+
 			// Rotate camera
 			if (X || Y) {
 				camera.rotate(X, Y, 0.0f);
@@ -502,6 +606,7 @@ void processInput(HWND hWnd) {
 	} // End if Captured
 }
 
+
 void updateFrame(HWND hWnd, double elapsedTimeSec) {
 
 	static UCHAR pKeyBuffer[256];
@@ -518,6 +623,11 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 	if (pKeyBuffer[VK_LEFT] & 0xF0) Direction |= DIR_LEFT;
 	if (pKeyBuffer[VK_RIGHT] & 0xF0) Direction |= DIR_RIGHT;
 
+	if (pKeyBuffer[VK_NUMPAD8] & 0xF0) Direction |= DIR_FORWARD2;
+	if (pKeyBuffer[VK_NUMPAD5] & 0xF0) Direction |= DIR_BACKWARD2;
+	if (pKeyBuffer[VK_NUMPAD4] & 0xF0) Direction |= DIR_LEFT2;
+	if (pKeyBuffer[VK_NUMPAD6] & 0xF0) Direction |= DIR_RIGHT2;
+
 	float pitch = 0.0f;
 	float heading = 0.0f;
 
@@ -528,43 +638,94 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 		Vector3f fb = camera.getViewDirection();
 		Vector3f rl = Vector3f::Cross(camera.getViewDirection(), camera.getCamY());
 		Vector3f dir(0.0f, 0.0f, 0.0f);
+		Vector3f dirKin(0.0f, 0.0f, 0.0f);
 
 		if (Direction || (pKeyBuffer[VK_RCONTROL] & 0xF0)) UPDATEFRAME = false;
 
 		if ((pKeyBuffer[VK_RCONTROL] & 0xF0) && dynamicCharacterController->onGround()) {
+			charCon->jump(btVector3(0, 60, 0));
 			dynamicCharacterController->jump(btVector3(0, 1, 0), 600);
+			colPoint.active = false;
+			//colPoint.upward = true;
+			colPoint.rad = 0.0f;
+			colPoint.angle = 0.0f;
 		}
 
 		if (Direction & DIR_FORWARD) {
 			dir += fb;
 		}
 
+		if (Direction & DIR_FORWARD2) {
+			dirKin += fb;
+		}
+
 		if (Direction & DIR_BACKWARD) {
 			dir -= fb;
+		}
+
+		if (Direction & DIR_BACKWARD2) {
+			dirKin -= fb;
 		}
 
 		if (Direction & DIR_LEFT) {
 			dir -= rl;
 		}
 
+		if (Direction & DIR_LEFT2) {
+			dirKin -= rl;
+		}
+
 		if (Direction & DIR_RIGHT) {
 			dir += rl;
 		}
-			
-		if (dynamicCharacterController->onGround() && !Direction) {					
-			btVector3 pos = dynamicCharacterController->getRigidBody()->getWorldTransform().getOrigin();
-			btVector3 linVel = m_groundBody->getVelocityInLocalPoint(pos);
+
+		if (Direction & DIR_RIGHT2) {
+			dirKin += rl;
+		}
+
+		if (dynamicCharacterController->onGround() && !Direction) {
+			btVector3 posDyn = dynamicCharacterController->getRigidBody()->getWorldTransform().getOrigin();
+			btVector3 linVel = m_groundBody->getVelocityInLocalPoint(posDyn);
 			float x = linVel.x(), z = linVel.z();
 			//if(abs(x) < 0.3 ) x = 0; if(abs(z) < 0.3) z = 0;
 			dynamicCharacterController->setMovementXZ(Vector2f(x, z));
-			
+			btVector3 posKin = charCon->getGhostObject()->getWorldTransform().getOrigin();
+			btVector3 quadOrigin = m_groundBody->getWorldTransform().getOrigin();
+
+			if (colPoint.active) {
+				btMatrix3x3 rot;
+				rot.setEulerZYX(0.0, colPoint.rad, 0.0);
+
+				//rot[0][0] = 0; rot[1][0] = 0; rot[2][0] = 0;
+				rot[0][1] = 0; rot[1][1] = 0; rot[2][1] = 0;
+				//rot[0][2] = 0; rot[1][2] = 0; rot[2][2] = 0;
+
+				btVector3 tmp = rot * (colPoint.position);				
+				btTransform transform = charCon->getGhostObject()->getWorldTransform();
+				transform.setOrigin(btVector3(tmp[0], colPoint.position[1], tmp[2]));
+				charCon->getGhostObject()->setWorldTransform(transform);
+
+				colPoint.angle = colPoint.angle + angVelY;
+				colPoint.rad = (PI * colPoint.angle) / 180.0f;
+			}
+
 		}else if (dynamicCharacterController->onGround() && Direction) {
 			//btVector3 pos = dynamicCharacterController2->getRigidBody()->getCenterOfMassPosition();
 			//btVector3 linVel = m_groundBody->getVelocityInLocalPoint(pos).normalized();
-			//dynamicCharacterController2->setMovementXZ(Vector2f(dir[0] + linVel.x(), dir[2] + linVel.z()) * 5.0);				
+			//dynamicCharacterController2->setMovementXZ(Vector2f(dir[0] + linVel.x(), dir[2] + linVel.z()) * 5.0);		
 			dynamicCharacterController->setMovementXZ(Vector2f(dir[0], dir[2]) * 50.0);
+			charCon->setWalkDirection(btVector3(dirKin[0], 0, dirKin[2]) * 0.8);
+			colPoint.active = false;
+			colPoint.rad = 0.0f;
+			colPoint.angle = 0.0f;
+			//jumping case
 		}else {
-			dynamicCharacterController->setMovementXZ(Vector2f(dir[0], dir[2]) * 50.0);
+
+			dynamicCharacterController->setMovementXZ(Vector2f(dir[0], dir[2]) * 100.0);
+			charCon->setWalkDirection(btVector3(dirKin[0], 0, dirKin[2]) );
+			colPoint.active = false;
+			colPoint.rad = 0.0f;
+			colPoint.angle = 0.0f;
 		}
 
 		if (UPDATEFRAME) {
@@ -576,13 +737,28 @@ void updateFrame(HWND hWnd, double elapsedTimeSec) {
 	}
 }
 
-void kinematicPreTickCallback(btDynamicsWorld* world, btScalar deltaTime){
+void kinematicPreTickCallback(btDynamicsWorld* world, btScalar deltaTime) {
 	btRigidBody* groundBody = (btRigidBody*)world->getWorldUserInfo();
 	btTransform predictedTrans;
-	btVector3 linearVelocity(0, 0, 0);
-	btVector3 angularVelocity(0, 0.1, 0);
+
+	/*btTransform t;
+	groundBody->getMotionState()->getWorldTransform(t);
+	float height = t.getOrigin().y();
+	if (upward & height > 0.0f) {
+	velY = -16.0f;
+	upward = false;
+	dynamicCharacterController->setDistanceOffset(0.1);
+	}
+
+	if (!upward & height < -400.0f) {
+	velY = 16.0f;
+	upward = true;
+	dynamicCharacterController->setDistanceOffset(0.33);
+	}*/
+
+	btVector3 linearVelocity(0, velY, 0);
+	btVector3 angularVelocity(0, angVelY, 0);
 	btTransformUtil::integrateTransform(groundBody->getWorldTransform(), linearVelocity, angularVelocity, deltaTime, predictedTrans);
 
 	groundBody->getMotionState()->setWorldTransform(predictedTrans);
-	//groundBody->setWorldTransform(predictedTrans);
 }
