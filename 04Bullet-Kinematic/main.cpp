@@ -168,16 +168,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// main message loop
 	while (true) {
 
-			// Did we recieve a message, or are we idling ?
-			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+		// Did we recieve a message, or are we idling ?
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 
-				// test if this is a quit
-				if (msg.message == WM_QUIT) break;
-				// translate and dispatch message
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
+			// test if this is a quit
+			if (msg.message == WM_QUIT) break;
+			// translate and dispatch message
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 
-			}else {
+		}
+		else {
 			end = start;
 			start = std::chrono::high_resolution_clock::now();
 			deltaTime = start - end;
@@ -197,7 +198,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				btBroadphasePairArray& pairArray = ghostObject->getOverlappingPairCache()->getOverlappingPairArray();
 				int numPairs = pairArray.size();
 
-				for (int i = 0; i<numPairs; i++){
+				for (int i = 0; i<numPairs; i++) {
 
 					manifoldArray.clear();
 
@@ -205,15 +206,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 					btBroadphasePair* collisionPair = broadphase->getOverlappingPairCache()->findPair(pair.m_pProxy0, pair.m_pProxy1);
 					if (!collisionPair)
-							continue;
+						continue;
 
 					if (collisionPair->m_algorithm)
-					collisionPair->m_algorithm->getAllContactManifolds(manifoldArray);
+						collisionPair->m_algorithm->getAllContactManifolds(manifoldArray);
 
-					for (int j = 0; j<manifoldArray.size(); j++){
+					for (int j = 0; j<manifoldArray.size(); j++) {
 
 						btPersistentManifold* manifold = manifoldArray[j];
-						for (int p = 0; p<manifold->getNumContacts(); p++){
+						for (int p = 0; p < manifold->getNumContacts(); p++) {
 
 							const btManifoldPoint&pt = manifold->getContactPoint(p);
 
@@ -223,8 +224,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 							if (!colPoint.active) {
 								colPoint.position = ghostObject->getWorldTransform().getOrigin();
-								//colPoint.position = ptA;
-								colPoint.active = true;										
+								colPoint.active = true;
 							}
 
 							if (colPoint.active && upward) {
@@ -273,7 +273,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				mat[2], mat[6], mat[10], mat[14],
 				mat[3], mat[7], mat[11], mat[15]));
 			sphere->draw(camera);
-			
+
 			t = dynamicCharacterController2->m_pGhostObject->getWorldTransform();
 			t.getOpenGLMatrix(mat);
 			//sphere->setTransformation(Matrix4f::Translate(position[0], position[1] + 5.0, position[2]));
@@ -490,7 +490,7 @@ void initApp(HWND hWnd) {
 	world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfig);
 	world->setGravity(btVector3(0, -100, 0));	//gravity on Earth
 
-	//create ground
+												//create ground
 	btBoxShape* groundShape = new btBoxShape(btVector3(btScalar(200.), btScalar(0.1), btScalar(200.)));
 	btTransform groundTransform;
 	groundTransform.setIdentity();
@@ -515,7 +515,7 @@ void initApp(HWND hWnd) {
 	btDefaultMotionState* motionStatedyn1 = new btDefaultMotionState(dyn1Transform);
 	btRigidBody::btRigidBodyConstructionInfo cInfodyn1(10.0, motionStatedyn1, dyn1, localInertiadyn1);
 	m_dyn1 = new btRigidBody(cInfodyn1);
-	m_dyn1->setCollisionFlags(btCollisionObject::CF_DYNAMIC_OBJECT );
+	m_dyn1->setCollisionFlags(btCollisionObject::CF_DYNAMIC_OBJECT);
 	world->addRigidBody(m_dyn1, COL_BOX, COL_BOX);
 
 
@@ -549,19 +549,19 @@ void initApp(HWND hWnd) {
 	ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
 	world->addCollisionObject(ghostObject, COL_GHOST, COL_BOX | COL_GHOST);
 
-	
+
 	charCon = new KinematicCharacterController2(ghostObject, ghostShape, 0.35f, btVector3(0.0f, 1.0f, 0.0f));
 	charCon->setGravity(btVector3(0, -100, 0));
 	charCon->setMaxJumpHeight(20.0);
-	
+
 	//charCon->m_safeGravity = -100.0f;
 
 	world->addAction(charCon);
 
 
-	
 
-	dynamicCharacterController2 = new DynamicCharacterController2(world, Vector3f(0.0f, 60.0f, 100.0f), 0.5f, 1.2f, 10.0f, 0.0f, COL_GHOST, COL_BOX );
+
+	dynamicCharacterController2 = new DynamicCharacterController2(world, Vector3f(0.0f, 60.0f, 100.0f), 0.5f, 1.2f, 10.0f, 0.0f, COL_GHOST, COL_BOX);
 	dynamicCharacterController2->setSlopeAngle(25.0f);
 }
 
@@ -683,12 +683,12 @@ void updateDyn(HWND hWnd, double elapsedTimeSec) {
 		Vector3f fb = camera.getViewDirection();
 		Vector3f rl = Vector3f::Cross(camera.getViewDirection(), camera.getCamY());
 		Vector3f dir(0.0f, 0.0f, 0.0f);
-	
+
 		if (Direction || (pKeyBuffer[VK_RCONTROL] & 0xF0)) UPDATEFRAME = false;
 
 		if ((pKeyBuffer[VK_RCONTROL] & 0xF0)) {
 			dynamicCharacterController->jump(btVector3(0, 1, 0), 600);
-			
+
 		}
 
 		if (Direction & DIR_FORWARD) {
@@ -714,14 +714,16 @@ void updateDyn(HWND hWnd, double elapsedTimeSec) {
 			float x = linVel.x(), z = linVel.z();
 			//if(abs(x) < 0.3 ) x = 0; if(abs(z) < 0.3) z = 0;
 			dynamicCharacterController->setMovementXZ(Vector2f(x, z));
-		}else if (dynamicCharacterController->onGround() && Direction) {
+		}
+		else if (dynamicCharacterController->onGround() && Direction) {
 			//btVector3 pos = dynamicCharacterController2->getRigidBody()->getCenterOfMassPosition();
 			//btVector3 linVel = m_groundBody->getVelocityInLocalPoint(pos).normalized();
 			//dynamicCharacterController2->setMovementXZ(Vector2f(dir[0] + linVel.x(), dir[2] + linVel.z()) * 5.0);		
 			dynamicCharacterController->setMovementXZ(Vector2f(dir[0], dir[2]) * 50.0);
-			
-		//jumping case
-		}else {
+
+			//jumping case
+		}
+		else {
 			btVector3 posDyn = dynamicCharacterController->getRigidBody()->getWorldTransform().getOrigin();
 			btVector3 linVel = m_groundBody->getVelocityInLocalPoint(posDyn);
 			float x = linVel.x(), z = linVel.z();
@@ -766,7 +768,7 @@ void updateDyn2(HWND hWnd, double elapsedTimeSec) {
 		if (Direction || (pKeyBuffer[VK_RCONTROL] & 0xF0)) UPDATEFRAME = false;
 
 		if ((pKeyBuffer[VK_RCONTROL] & 0xF0)) {
-			
+
 			dynamicCharacterController2->Jump();
 			//dynamicCharacterController2->Jump(btVector3(0, 1, 0), 600);
 		}
@@ -789,7 +791,7 @@ void updateDyn2(HWND hWnd, double elapsedTimeSec) {
 		}
 
 		if (dynamicCharacterController2->IsOnGround() && !Direction) {
-			
+
 			btVector3 posDyn = dynamicCharacterController2->m_pRigidBody->getWorldTransform().getOrigin();
 			btVector3 linVel = m_groundBody->getVelocityInLocalPoint(posDyn);
 			float x = linVel.x(), z = linVel.z();
@@ -797,13 +799,13 @@ void updateDyn2(HWND hWnd, double elapsedTimeSec) {
 			//dynamicCharacterController2->setVelocityXZ(Vector2f(x, z));
 			//dynamicCharacterController2->m_friction = 40;
 		}
-		else if ( Direction) {
+		else if (Direction) {
 			//btVector3 pos = dynamicCharacterController2->getRigidBody()->getCenterOfMassPosition();
 			//btVector3 linVel = m_groundBody->getVelocityInLocalPoint(pos).normalized();
 			//dynamicCharacterController2->setMovementXZ(Vector2f(dir[0] + linVel.x(), dir[2] + linVel.z()) * 5.0);		
 			//dynamicCharacterController2->m_friction = 0;
 			dynamicCharacterController2->Walk(Vector2f(dir[0], dir[2]) * 50.0);
-			
+
 			//jumping case
 		}
 		else {
@@ -850,10 +852,12 @@ void updateKin(HWND hWnd, double elapsedTimeSec) {
 
 		if (Direction || (pKeyBuffer[VK_RCONTROL] & 0xF0)) UPDATEFRAME = false;
 
-		if ((pKeyBuffer[VK_RCONTROL] & 0xF0) && charCon->onGround()) {
-			charCon->jump(btVector3(0, 60, 0));
-			charCon->setGravity(btVector3(0.0f, -100.0f, 0.0f));
-			colPoint.active = false;			
+		if ((pKeyBuffer[VK_RCONTROL] & 0xF0)) {
+			if (charCon->onGround()) {
+				charCon->jump(btVector3(0, 60, 0));
+				charCon->setGravity(btVector3(0.0f, -100.0f, 0.0f));
+			}
+			colPoint.active = false;
 		}
 
 		if (Direction & DIR_FORWARD2) {
@@ -873,29 +877,52 @@ void updateKin(HWND hWnd, double elapsedTimeSec) {
 		}
 
 		if (!Direction) {
-			
+
 			if (colPoint.active) {
-				
+
 				btVector3 angVel = (m_groundBody->getAngularVelocity()) * PI *(1.0f / 180.0f);
 
 				btMatrix3x3 rot;
 				rot.setEulerZYX(angVel[2], angVel[1], angVel[0]);
-							
+
 				btVector3 tmp = rot * (colPoint.position);
-				
-				colPoint.position = tmp ;
-				
+
+				colPoint.position = tmp;
+
+				btTransform transform = charCon->getGhostObject()->getWorldTransform();
+				tmp[1] = transform.getOrigin()[1];
+
+				transform.setOrigin(btVector3(tmp[0], tmp[1], tmp[2]));
+				charCon->getGhostObject()->setWorldTransform(transform);
+
+			}
+			
+			/*else {
+
+				charCon->setWalkDirection(btVector3(0.0f, 0.0f, 0.0f));
+			}*/
+
+		}else if (charCon->onGround() && Direction) {
+
+			if (charCon->getGravity()[0] == 0.0f) {
+				btVector3 angVel = (m_groundBody->getAngularVelocity()) * PI *(1.0f / 180.0f);
+
+				btMatrix3x3 rot;
+				rot.setEulerZYX(angVel[2], angVel[1], angVel[0]);
+
+				btVector3 tmp = rot * (colPoint.position);
+
+				colPoint.position = tmp;
+
 				btTransform transform = charCon->getGhostObject()->getWorldTransform();
 				tmp[1] = transform.getOrigin()[1];
 
 				transform.setOrigin(btVector3(tmp[0], tmp[1], tmp[2]));
 				charCon->getGhostObject()->setWorldTransform(transform);
 			}
-			
-		}else if (charCon->onGround() && Direction) {
-			
-			charCon->setWalkDirection(btVector3(dirKin[0], 0, dirKin[2]) * 0.8);
-			colPoint.active = false;			
+
+			colPoint.position = colPoint.position + btVector3(dirKin[0], 0.0f, dirKin[2]) * 0.8;
+
 		//jumping case
 		}else {
 			charCon->setWalkDirection(btVector3(dirKin[0], 0, dirKin[2]));
@@ -928,7 +955,7 @@ void kinematicPreTickCallback(btDynamicsWorld* world, btScalar deltaTime) {
 
 		//charCon->m_upward = false;
 		/*if (colPoint.active) {
-			charCon->setGravity(btVector3(0.0f, 0.0f, 0.0f));
+		charCon->setGravity(btVector3(0.0f, 0.0f, 0.0f));
 		}*/
 	}
 
