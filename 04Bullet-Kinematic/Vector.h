@@ -28,6 +28,8 @@ public:
 
 	const float* getVec()const;
 
+	float length() const;
+
 	Vector2f &operator+=(const Vector2f &rhs);
 	Vector2f &operator-=(const Vector2f &rhs);
 

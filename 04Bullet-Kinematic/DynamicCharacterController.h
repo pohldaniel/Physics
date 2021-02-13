@@ -41,7 +41,6 @@ class DynamicCharacterController {
 		btRigidBody* getRigidBody() const { return mRigidBody; }
 		btCollisionShape* getCollisionShape() const { return mShape; }
 
-	private:
 
 		void moveCharacterAlongY(float step);
 
@@ -61,5 +60,7 @@ class DynamicCharacterController {
 		float mCharacterMovementZ;
 
 		float mCharacterMovementY;
+
+		bool movingUpward = true;
 };
 #endif // _BASIS3STEPCHARACTERCONTROLLER_H_INCLUDED_

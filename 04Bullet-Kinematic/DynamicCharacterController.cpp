@@ -176,14 +176,18 @@ void DynamicCharacterController::preStep()
 	}
 
 	// Move character upwards. (Bump over stairs)
-	moveCharacterAlongY(mStepHeight);
-
+	if (movingUpward) {
+		moveCharacterAlongY(mStepHeight);
+	}else {
+		mOnGround = true;
+	}
+	
 	// Set the linear velocity based on the movement vector. Don't adjust the Y-component, instead let Bullet handle that.
 	if (mOnGround){		
 		btVector3 linVel = mRigidBody->getLinearVelocity();
 		linVel.setX(mCharacterMovementX);
 		linVel.setZ(mCharacterMovementZ);
-		linVel.setY(0);
+		//linVel.setY(0);
 		mRigidBody->setLinearVelocity(linVel);
 	}else if(!mOnGround){
 		btVector3 linVel = mRigidBody->getLinearVelocity();
@@ -268,9 +272,8 @@ void DynamicCharacterController::postStep()
 
 		// Compute distance to the floor.
 		float distance = btDistance(end, from);
-		
 		mOnGround = (distance < mDistanceOffset && !mOnSteepSlope);
-
+		 
 		// Move down.
 		if (distance < mStepHeight)
 		{
@@ -303,39 +306,35 @@ bool DynamicCharacterController::onGround() const
 
 void DynamicCharacterController::jump(const btVector3& direction, float force)
 {
-	if (mOnGround){
+	
+	if (mOnGround){		
+	
 		mOnGround = false;
 		mRigidBody->applyCentralImpulse(direction * force);
 	}
 }
 
-void DynamicCharacterController::setMovementXZ(const Vector2f& movementVector)
-{
+void DynamicCharacterController::setMovementXZ(const Vector2f& movementVector){
 	mCharacterMovementX = movementVector[0];
 	mCharacterMovementZ = movementVector[1];
 	//mCharacterMovementY = 0;
 }
 
-void  DynamicCharacterController::setMovementXYZ(const btVector3& movementVector) 
-{
+void  DynamicCharacterController::setMovementXYZ(const btVector3& movementVector){
 	mCharacterMovementX = movementVector[0];
 	mCharacterMovementY = movementVector[1];
 	mCharacterMovementZ = movementVector[2];
 }
 
-void DynamicCharacterController::setLinearVelocity(const btVector3& vel)
-{
-	
+void DynamicCharacterController::setLinearVelocity(const btVector3& vel){	
 	mRigidBody->setLinearVelocity(vel);
 }
 
-const btVector3& DynamicCharacterController::getLinearVelocity()
-{
+const btVector3& DynamicCharacterController::getLinearVelocity(){
 	return mRigidBody->getLinearVelocity();
 }
 
-void DynamicCharacterController::moveCharacterAlongY(float step)
-{
+void DynamicCharacterController::moveCharacterAlongY(float step){
 	btVector3 pos = mRigidBody->getWorldTransform().getOrigin();
 	mRigidBody->getWorldTransform().setOrigin(pos + btVector3(0, step, 0));
 }

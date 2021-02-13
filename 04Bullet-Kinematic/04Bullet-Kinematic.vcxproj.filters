@@ -576,6 +576,18 @@
     <ClCompile Include="DynamicCharacterController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="KinematicCharacterController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Character.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DynamicCharacterController2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="KinematicCharacterController2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MeshObject\MeshCube.h">
@@ -1314,6 +1326,18 @@
       <Filter>Third\deps</Filter>
     </ClInclude>
     <ClInclude Include="DynamicCharacterController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KinematicCharacterController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Character.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicCharacterController2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KinematicCharacterController2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

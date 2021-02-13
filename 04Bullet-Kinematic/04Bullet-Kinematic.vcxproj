@@ -308,8 +308,12 @@
     <ClCompile Include="..\Bullet\LinearMath\TaskScheduler\btThreadSupportPosix.cpp" />
     <ClCompile Include="..\Bullet\LinearMath\TaskScheduler\btThreadSupportWin32.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Character.cpp" />
     <ClCompile Include="DynamicCharacterController.cpp" />
+    <ClCompile Include="DynamicCharacterController2.cpp" />
     <ClCompile Include="Extension.cpp" />
+    <ClCompile Include="KinematicCharacterController.cpp" />
+    <ClCompile Include="KinematicCharacterController2.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MeshObject\MeshCube.cpp" />
     <ClCompile Include="MeshObject\MeshQuad.cpp" />
@@ -557,8 +561,12 @@
     <ClInclude Include="..\Bullet\LinearMath\btVector3.h" />
     <ClInclude Include="..\Bullet\LinearMath\TaskScheduler\btThreadSupportInterface.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Character.h" />
     <ClInclude Include="DynamicCharacterController.h" />
+    <ClInclude Include="DynamicCharacterController2.h" />
     <ClInclude Include="Extension.h" />
+    <ClInclude Include="KinematicCharacterController.h" />
+    <ClInclude Include="KinematicCharacterController2.h" />
     <ClInclude Include="MeshObject\MeshCube.h" />
     <ClInclude Include="MeshObject\MeshQuad.h" />
     <ClInclude Include="MeshObject\MeshSphere.h" />

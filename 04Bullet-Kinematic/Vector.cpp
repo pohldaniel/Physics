@@ -912,8 +912,11 @@ Vector2f Vector2f::operator/(float scalar) const {
 }
 
 Vector2f operator-(const Vector2f &v) {
-
 	return Vector2f(-v.vec[0], -v.vec[1]);
+}
+
+float Vector2f::length() const {
+	return sqrtf((vec[0] * vec[0]) + (vec[1] * vec[1]));
 }
 //////////////////////////////////////////////////////////////////////
 Vector3f::Vector3f() {
