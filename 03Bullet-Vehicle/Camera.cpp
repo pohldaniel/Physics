@@ -133,7 +133,7 @@ void Camera::updateViewMatrix(const Vector3f &eye, const Vector3f &target, const
 	m_viewMatrix[3][3] = 1.0f;
 
 	// Extract the pitch angle from the view matrix.
-	m_accumPitchDegrees = asinf(m_viewMatrix[1][2])*180.f / PI;
+	m_accumPitchDegrees = asinf(m_viewMatrix[2][1])*180.f / PI;
 
 	/*Matrix4f invView;
 	invView.invLookAt(eye, target, up);
@@ -216,7 +216,6 @@ void Camera::lookAt(const Vector3f &eye, const Vector3f &target, const Vector3f 
 
 	m_viewDir = -m_zAxis;
 
-
 	m_viewMatrix[0][0] = m_xAxis[0];
 	m_viewMatrix[1][0] = m_yAxis[0];
 	m_viewMatrix[2][0] = m_zAxis[0];
@@ -238,11 +237,10 @@ void Camera::lookAt(const Vector3f &eye, const Vector3f &target, const Vector3f 
 	m_viewMatrix[3][3] = 1.0f;
 
 	// Extract the pitch angle from the view matrix.
-	m_accumPitchDegrees = -asinf(m_viewMatrix[1][2])*180.f / PI;
+	m_accumPitchDegrees = asinf(m_viewMatrix[2][1])*180.f / PI;
 }
 
 void Camera::move(float dx, float dy, float dz) {
-
 	Vector3f eye = m_eye;
 	eye += m_xAxis * dx;
 	eye += WORLD_YAXIS * dy;
@@ -275,7 +273,6 @@ void Camera::rotateFirstPerson(float pitch, float yaw) {
 
 	// Rotate camera's existing x and z axes about the world y axis.
 	if (yaw != 0.0f) {
-
 		rotMtx.rotate(WORLD_YAXIS, yaw);
 		m_xAxis = rotMtx * m_xAxis;
 		m_zAxis = rotMtx * m_zAxis;
@@ -283,7 +280,6 @@ void Camera::rotateFirstPerson(float pitch, float yaw) {
 
 	// Rotate camera's existing y and z axes about its existing x axis.
 	if (pitch != 0.0f) {
-
 		rotMtx.rotate(m_xAxis, pitch);
 		m_yAxis = rotMtx * m_yAxis;
 		m_zAxis = rotMtx * m_zAxis;

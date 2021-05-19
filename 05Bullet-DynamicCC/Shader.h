@@ -11,9 +11,7 @@
 #include "Vector.h"
 
 class Shader {
-
 public:
-
 	Shader(std::string vertex, std::string fragment);
 	Shader(Shader* shader);
 	virtual ~Shader();
@@ -29,7 +27,6 @@ public:
 	void loadBool(const char* location, bool value);
 
 protected:
-
 	GLuint createProgram(std::string vertex, std::string fragment);
 
 	void readTextFile(const char *pszFilename, std::string &buffer);
@@ -38,9 +35,5 @@ protected:
 	GLuint linkShaders(GLuint vertShader, GLuint fragShader);
 
 	void cleanup();
-
-
 };
-
-
 #endif // __shaderH__

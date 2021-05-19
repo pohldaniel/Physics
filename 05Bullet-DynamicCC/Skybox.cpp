@@ -17,7 +17,6 @@ void SkyBox::setProjectionMatrix(const Matrix4f &projection) {
 
 SkyBox::~SkyBox(){}
 
-
 void SkyBox::createCubeMap(const char* filename, bool flipVertical, bool flipHorizontal){
 
 	std::string pattern(filename);
@@ -41,16 +40,13 @@ void SkyBox::createCubeMap(const char* filename, bool flipVertical, bool flipHor
 		FindClose(hFind);
 	}
 
-
 	// format cube map texture
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
 }
 
 
@@ -80,7 +76,6 @@ void SkyBox::loadSide(unsigned int side_target, const char* fileName, bool flipV
 }
 
 void SkyBox::createBuffer(const Vector3f &position){
-
 	m_postions.push_back((-1.0 + position[0]) * m_size); m_postions.push_back((1.0 + position[1]) * m_size); m_postions.push_back((-1.0 + position[2]) * m_size);
 	m_postions.push_back((-1.0 + position[0]) * m_size); m_postions.push_back((-1.0 + position[1]) * m_size); m_postions.push_back((-1.0 + position[2]) * m_size);
 	m_postions.push_back((1.0 + position[0]) * m_size); m_postions.push_back((-1.0 + position[1]) * m_size); m_postions.push_back((-1.0 + position[2]) * m_size);
@@ -154,7 +149,6 @@ void SkyBox::draw(const Camera camera){
 
 	glDepthFunc(GL_LESS);
 }
-
 
 void SkyBox::FlipVertical(unsigned int width, unsigned int height, unsigned short channels, unsigned char(*&image)) {
 	int padWidth = channels * width;

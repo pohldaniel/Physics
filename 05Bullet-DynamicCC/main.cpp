@@ -419,7 +419,7 @@ void initApp(HWND hWnd) {
 	glEnable(GL_DEPTH_TEST);					// hidden surface removal
 	glEnable(GL_CULL_FACE);						// do not calculate inside of poly's
 
-												//setup the camera.
+	//setup the camera.
 	camera = Camera(Vector3f(0.0f, 20.0f, 220.f), Vector3f(0.0f, 20.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f));
 	camera.perspective(45.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 5000.0f);
 
