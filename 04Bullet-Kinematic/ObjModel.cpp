@@ -306,7 +306,6 @@ void Model::setShader(const char* vertex, const char* fragment) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Mesh::Mesh(std::string mltName, int numberTriangles, Model* model) : m_stride(0), m_triangleOffset(0) {
-
 	m_numberOfTriangles = numberTriangles;
 	m_mltName = mltName;
 	m_model = model;
@@ -322,6 +321,7 @@ Mesh::Mesh(std::string mltName, int numberTriangles, Model* model) : m_stride(0)
 }
 
 Mesh::Mesh(int numberTriangles, Model* model) : m_stride(0), m_triangleOffset(0) {
+	m_numberOfTriangles = numberTriangles;
 	m_model = model;
 	
 	m_material.diffuseTexPath = "";

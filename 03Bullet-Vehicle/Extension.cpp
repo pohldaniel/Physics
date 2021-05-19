@@ -514,7 +514,6 @@ void glDrawBuffers(GLsizei n, const GLenum *bufs){
 	glDrawBuffers(n, bufs);
 }
 
-
 void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer){
 
 	typedef void(APIENTRY * PFNGLFRAMEBUFFERTEXTURELAYERPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
@@ -522,8 +521,6 @@ void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
 	LOAD_ENTRYPOINT("glFramebufferTextureLayer", glFramebufferTextureLayer, PFNGLFRAMEBUFFERTEXTURELAYERPROC);
 	glFramebufferTextureLayer(target, attachment, texture, level, layer);
 }
-
-
 
 void glActiveTextureARB(GLenum texture)
 {

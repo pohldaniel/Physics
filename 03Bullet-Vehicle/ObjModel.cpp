@@ -306,7 +306,6 @@ void Model::setShader(const char* vertex, const char* fragment) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Mesh::Mesh(std::string mltName, int numberTriangles, Model* model) : m_stride(0), m_triangleOffset(0) {
-
 	m_numberOfTriangles = numberTriangles;
 	m_mltName = mltName;
 	m_model = model;
@@ -322,6 +321,7 @@ Mesh::Mesh(std::string mltName, int numberTriangles, Model* model) : m_stride(0)
 }
 
 Mesh::Mesh(int numberTriangles, Model* model) : m_stride(0), m_triangleOffset(0) {
+	m_numberOfTriangles = numberTriangles;
 	m_model = model;
 	
 	m_material.diffuseTexPath = "";
@@ -486,9 +486,6 @@ void Mesh::createBuffer() {
 				m_positions.push_back(position);
 			}
 		}
-	}else {
-
-
 	}
 
 	m_drawCount = m_indexBuffer.size();
@@ -524,7 +521,7 @@ void Mesh::createBuffer() {
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	}
 	//Indices
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbo[2]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbo[3]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer.size() * sizeof(m_indexBuffer[0]), &m_indexBuffer[0], GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
