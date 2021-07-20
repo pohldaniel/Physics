@@ -165,9 +165,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			// translate and dispatch message
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
-
-		}
-		else {
+		}else {
 			end = start;
 			start = std::chrono::high_resolution_clock::now();
 			deltaTime = start - end;

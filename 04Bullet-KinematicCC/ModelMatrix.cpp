@@ -1,7 +1,7 @@
 #include <iostream>
 #include "ModelMatrix.h"
 
-ModelMatrix::ModelMatrix(){
+ModelMatrix::ModelMatrix() {
 	pos = false;
 	posRot = false;
 	T.identity();
@@ -11,25 +11,25 @@ ModelMatrix::ModelMatrix(){
 	orientation.identity();
 }
 
-ModelMatrix::~ModelMatrix(){
+ModelMatrix::~ModelMatrix() {
 
 }
 
-void ModelMatrix::setRotPos(const Vector3f &axis, float degrees, float dx, float dy, float dz){
+void ModelMatrix::setRotPos(const Vector3f &axis, float degrees, float dx, float dy, float dz) {
 
 	if (posRot) return;
 
 	Matrix4f rotMtx;
 	Matrix4f invRotMtx;
 
-	if (degrees != 0 || (!axis[0] == 0.0 && !axis[1] == 0.0 && !axis[2] == 0.0)){
+	if (degrees != 0 && !(axis[0] == 0.0 && axis[1] == 0.0 && axis[2] == 0.0)) {
 
 		rotMtx.rotate(axis, degrees);
 
 		invRotMtx = Matrix4f(rotMtx[0][0], rotMtx[1][0], rotMtx[2][0], rotMtx[3][0],
-							 rotMtx[0][1], rotMtx[1][1], rotMtx[2][1], rotMtx[3][1],
-							 rotMtx[0][2], rotMtx[1][2], rotMtx[2][2], rotMtx[3][2],
-							 rotMtx[0][3], rotMtx[1][3], rotMtx[2][3], rotMtx[3][3]);
+			rotMtx[0][1], rotMtx[1][1], rotMtx[2][1], rotMtx[3][1],
+			rotMtx[0][2], rotMtx[1][2], rotMtx[2][2], rotMtx[3][2],
+			rotMtx[0][3], rotMtx[1][3], rotMtx[2][3], rotMtx[3][3]);
 
 		T = T ^ rotMtx;
 		invT = invRotMtx ^ invT;
@@ -52,9 +52,9 @@ void ModelMatrix::setRotPos(const Vector3f &axis, float degrees, float dx, float
 
 	startPosition = Vector3f(dx, dy, dz);
 	position = Vector3f(dx, dy, dz);
-	
 
-	if (!startPosition.zero()){
+
+	if (!startPosition.zero()) {
 
 		pos = true;
 	}
@@ -65,56 +65,56 @@ void ModelMatrix::setRotPos(const Vector3f &axis, float degrees, float dx, float
 void ModelMatrix::setRotXYZPos(const Vector3f &axisX, float degreesX,
 	const Vector3f &axisY, float degreesY,
 	const Vector3f &axisZ, float degreesZ,
-	float dx, float dy, float dz){
+	float dx, float dy, float dz) {
 
 	if (posRot) return;
 
 	Matrix4f rotMtx;
 	Matrix4f invRotMtx;
 
-	if (degreesX != 0 || (!axisX[0] == 0.0 && !axisX[1] == 0.0 && !axisX[2] == 0.0)){
-	
+	if (degreesX != 0 && !(axisX[0] == 0.0 && axisX[1] == 0.0 && axisX[2] == 0.0)) {
+
 		rotMtx.rotate(axisX, degreesX);
 		invRotMtx = Matrix4f(rotMtx[0][0], rotMtx[1][0], rotMtx[2][0], rotMtx[3][0],
-							 rotMtx[0][1], rotMtx[1][1], rotMtx[2][1], rotMtx[3][1],
-							 rotMtx[0][2], rotMtx[1][2], rotMtx[2][2], rotMtx[3][2],
-							 rotMtx[0][3], rotMtx[1][3], rotMtx[2][3], rotMtx[3][3]);
+			rotMtx[0][1], rotMtx[1][1], rotMtx[2][1], rotMtx[3][1],
+			rotMtx[0][2], rotMtx[1][2], rotMtx[2][2], rotMtx[3][2],
+			rotMtx[0][3], rotMtx[1][3], rotMtx[2][3], rotMtx[3][3]);
 
 		T = T ^ rotMtx;
 		invT = invRotMtx ^ invT;
 
 	}
 
-	if (degreesY != 0 || (!axisY[0] == 0.0 && !axisY[1] == 0.0 && !axisY[2] == 0.0)){
-	
+	if (degreesY != 0 && !(axisY[0] == 0.0 && axisY[1] == 0.0 && axisY[2] == 0.0)) {
+
 		rotMtx.rotate(axisY, degreesY);
 		invRotMtx = Matrix4f(rotMtx[0][0], rotMtx[1][0], rotMtx[2][0], rotMtx[3][0],
-							 rotMtx[0][1], rotMtx[1][1], rotMtx[2][1], rotMtx[3][1],
-							 rotMtx[0][2], rotMtx[1][2], rotMtx[2][2], rotMtx[3][2],
-							 rotMtx[0][3], rotMtx[1][3], rotMtx[2][3], rotMtx[3][3]);
+			rotMtx[0][1], rotMtx[1][1], rotMtx[2][1], rotMtx[3][1],
+			rotMtx[0][2], rotMtx[1][2], rotMtx[2][2], rotMtx[3][2],
+			rotMtx[0][3], rotMtx[1][3], rotMtx[2][3], rotMtx[3][3]);
 		T = T ^ rotMtx;
 		invT = invRotMtx ^ invT;
 
-		
+
 
 	}
 
-	if (degreesZ != 0 || (!axisZ[0] == 0.0 && !axisZ[1] == 0.0 && !axisZ[2] == 0.0)){
-		
+	if (degreesZ != 0 && !(axisZ[0] == 0.0 && axisZ[1] == 0.0 && axisZ[2] == 0.0)) {
+
 		rotMtx.rotate(axisZ, degreesZ);
 		invRotMtx = Matrix4f(rotMtx[0][0], rotMtx[1][0], rotMtx[2][0], rotMtx[3][0],
-							 rotMtx[0][1], rotMtx[1][1], rotMtx[2][1], rotMtx[3][1],
-							 rotMtx[0][2], rotMtx[1][2], rotMtx[2][2], rotMtx[3][2],
-							 rotMtx[0][3], rotMtx[1][3], rotMtx[2][3], rotMtx[3][3]);
+			rotMtx[0][1], rotMtx[1][1], rotMtx[2][1], rotMtx[3][1],
+			rotMtx[0][2], rotMtx[1][2], rotMtx[2][2], rotMtx[3][2],
+			rotMtx[0][3], rotMtx[1][3], rotMtx[2][3], rotMtx[3][3]);
 
 		T = T ^ rotMtx;
 		invT = invRotMtx ^ invT;
-		
+
 	}
 	startOrientation = T;
 	orientation = T;
 
-	
+
 	//T = Translate * T
 	T[0][0] = T[0][0] + T[3][0] * dx; T[1][0] = T[1][0] + T[3][0] * dz; T[2][0] = T[2][0] + T[3][0] * dy;
 	T[0][1] = T[0][1] + T[3][1] * dx; T[1][1] = T[1][1] + T[3][1] * dz; T[2][1] = T[2][1] + T[3][1] * dy;
@@ -133,7 +133,7 @@ void ModelMatrix::setRotXYZPos(const Vector3f &axisX, float degreesX,
 	startPosition = Vector3f(dx, dy, dz);
 	position = Vector3f(dx, dy, dz);
 
-	if (!startPosition.zero()){
+	if (!startPosition.zero()) {
 
 		pos = true;
 	}
@@ -141,24 +141,25 @@ void ModelMatrix::setRotXYZPos(const Vector3f &axisX, float degreesX,
 	posRot = true;
 }
 
-void ModelMatrix::rotate(const Vector3f &axis, float degrees){
+void ModelMatrix::rotate(const Vector3f &axis, float degrees) {
 
 	Matrix4f rotMtx;
 	rotMtx.rotate(axis, degrees);
 
-	
+
 
 	Matrix4f invRotMtx = Matrix4f(rotMtx[0][0], rotMtx[1][0], rotMtx[2][0], rotMtx[3][0],
 		rotMtx[0][1], rotMtx[1][1], rotMtx[2][1], rotMtx[3][1],
 		rotMtx[0][2], rotMtx[1][2], rotMtx[2][2], rotMtx[3][2],
 		rotMtx[0][3], rotMtx[1][3], rotMtx[2][3], rotMtx[3][3]);
 
-	if (!pos){
+	if (!pos) {
 
 		T = T ^ rotMtx;
 		invT = invRotMtx ^ invT;
 
-	}else{
+	}
+	else {
 
 		//T = (translate * invRotMtx * invTranslate) * T
 		float tmp1 = invRotMtx[0][3], tmp2 = invRotMtx[1][3], tmp3 = invRotMtx[2][3], tmp4 = invRotMtx[3][3];
@@ -174,12 +175,12 @@ void ModelMatrix::rotate(const Vector3f &axis, float degrees){
 		rotMtx[1][3] = startPosition[1] * (tmp4 - rotMtx[1][1]) + tmp1 + tmp2 + tmp3 - startPosition[0] * rotMtx[1][0] - startPosition[2] * rotMtx[1][2];
 		rotMtx[2][3] = startPosition[2] * (tmp4 - rotMtx[2][2]) + tmp1 + tmp2 + tmp3 - startPosition[0] * rotMtx[2][0] - startPosition[1] * rotMtx[2][1];
 		rotMtx[3][3] = startPosition[0] * (tmp1 - rotMtx[3][0]) + startPosition[1] * (tmp2 - rotMtx[3][1]) + startPosition[2] * (tmp3 - rotMtx[3][2]) + tmp4;
-		T = rotMtx ^ T;	
+		T = rotMtx ^ T;
 	}
 }
 
 
-void ModelMatrix::translate(float dx, float dy, float dz){
+void ModelMatrix::translate(float dx, float dy, float dz) {
 
 	position = position + Vector3f(dx, dy, dz);
 
@@ -194,7 +195,7 @@ void ModelMatrix::translate(float dx, float dy, float dz){
 
 }
 
-void ModelMatrix::scale(float a, float b, float c){
+void ModelMatrix::scale(float a, float b, float c) {
 
 	if (a == 0) a = 1.0;
 	if (b == 0) b = 1.0;
@@ -211,12 +212,12 @@ void ModelMatrix::scale(float a, float b, float c){
 	invT[0][3] = invT[0][3] * (1.0 / a); invT[1][3] = invT[1][3] * (1.0 / b); invT[2][3] = invT[2][3] * (1.0 / c);
 }
 
-const Matrix4f &ModelMatrix::getTransformationMatrix() const{
+const Matrix4f &ModelMatrix::getTransformationMatrix() const {
 
 	return T;
 }
 
-const Matrix4f &ModelMatrix::getInvTransformationMatrix() const{
+const Matrix4f &ModelMatrix::getInvTransformationMatrix() const {
 
 	return invT;
 }
