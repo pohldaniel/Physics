@@ -20,7 +20,6 @@
 #include "Skybox.h"
 #include "DynamicCharacterController.h"
 #include "DynamicCharacterController2.h"
-#include "KinematicCharacterController.h"
 #include "KinematicCharacterController2.h"
 
 int height = 960;

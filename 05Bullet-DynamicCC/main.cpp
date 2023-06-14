@@ -457,6 +457,7 @@ void initApp(HWND hWnd) {
 	groundTransform.setRotation(btQuaternion(btVector3(0, 0, 1), (PI * 9.0) / 180.0f));
 
 	btVector3 localInertiaGround(0, 0, 0);
+	//groundShape->calculateLocalInertia(0.0, localInertiaGround);
 	btDefaultMotionState* motionStateGround = new btDefaultMotionState(groundTransform);
 	btRigidBody::btRigidBodyConstructionInfo cInfo(0.0, motionStateGround, groundShape, localInertiaGround);
 	m_groundBody = new btRigidBody(cInfo);
@@ -472,6 +473,7 @@ void initApp(HWND hWnd) {
 	dyn1Transform.setIdentity();
 	dyn1Transform.setOrigin(btVector3(btScalar(-160.), btScalar(60.), btScalar(0.)));
 	btVector3 localInertiadyn1(0, 0, 0);
+	dyn1->calculateLocalInertia(10.0, localInertiadyn1);
 	btDefaultMotionState* motionStatedyn1 = new btDefaultMotionState(dyn1Transform);
 	btRigidBody::btRigidBodyConstructionInfo cInfodyn1(10.0, motionStatedyn1, dyn1, localInertiadyn1);
 	m_dyn1 = new btRigidBody(cInfodyn1);
@@ -485,6 +487,7 @@ void initApp(HWND hWnd) {
 	charTransform.setIdentity();
 	charTransform.setOrigin(btVector3(btScalar(0.), btScalar(60.), btScalar(-160.)));
 	btVector3 localInertiaChar(0, 0, 0);
+	charShape->calculateLocalInertia(10.0, localInertiaChar);
 	btDefaultMotionState* motionStateChar = new btDefaultMotionState(charTransform);
 	btRigidBody::btRigidBodyConstructionInfo cInfoChar(10.0, motionStateChar, charShape, localInertiaChar);
 
